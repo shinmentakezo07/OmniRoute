@@ -1,21 +1,12 @@
-import { translateResponse, initState } from "../translator/index.ts";
-import { FORMATS } from "../translator/formats.ts";
-import { trackPendingRequest, appendRequestLog } from "@/lib/usageDb";
-import {
-  extractUsage,
-  hasValidUsage,
-  estimateUsage,
-  logUsage,
-  addBufferToUsage,
-  filterUsageForFormat,
-  COLORS,
-} from "./usageTracking.ts";
-import { parseSSELine, hasValuableContent, fixInvalidId, formatSSE } from "./streamHelpers.ts";
+import { initState } from "../translator/index.ts";
 import { STREAM_IDLE_TIMEOUT_MS, HTTP_STATUS } from "../config/constants.ts";
-import {
-  sanitizeStreamingChunk,
-  extractThinkingFromContent,
-} from "../handlers/responseSanitizer.ts";
+import { trackPendingRequest, appendRequestLog } from "@/lib/usageDb";
+import { COLORS } from "./usageTracking.ts";
+import { formatSSE } from "./streamHelpers.ts";
+import { createIdleWatchdog } from "./stream/idleWatchdog.ts";
+import { processPassthroughLine } from "./stream/passthroughProcessor.ts";
+import { processTranslateLine } from "./stream/translateProcessor.ts";
+import { beginFlush, handlePassthroughFlush, handleTranslateFlush } from "./stream/flushHandlers.ts";
 
 export { COLORS, formatSSE };
 
@@ -65,363 +56,137 @@ export function createSSEStream(options: any = {}) {
     onComplete = null,
   } = options;
 
-  let buffer = "";
-  let usage = null;
+  // Mutable refs shared across helpers
+  const bufferRef = { current: "" };
+  const usageRef = { current: null };
+  const totalContentLengthRef = { current: 0 };
+  const doneSentRef = { current: false };
 
   // State for translate mode
   const state =
     mode === STREAM_MODE.TRANSLATE ? { ...initState(sourceFormat), provider, toolNameMap } : null;
-
-  // Track content length for usage estimation (both modes)
-  let totalContentLength = 0;
-
-  // Guard against duplicate [DONE] events — ensures exactly one per stream
-  let doneSent = false;
 
   // Per-stream instances to avoid shared state with concurrent streams
   const decoder = new TextDecoder();
   const encoder = new TextEncoder();
 
   // Idle timeout state — closes stream if provider stops sending data
-  let lastChunkTime = Date.now();
-  let idleTimer = null;
   let streamTimedOut = false;
+  let streamController = null;
+  const idleWatchdog = createIdleWatchdog({
+    timeoutMs: STREAM_IDLE_TIMEOUT_MS,
+    onTimeout: () => {
+      streamTimedOut = true;
+      const timeoutMsg = `[STREAM] Idle timeout: no data from ${provider || "provider"} for ${STREAM_IDLE_TIMEOUT_MS}ms (model: ${model || "unknown"})`;
+      console.warn(timeoutMsg);
+      trackPendingRequest(model, provider, connectionId, false);
+      appendRequestLog({
+        model,
+        provider,
+        connectionId,
+        status: `FAILED ${HTTP_STATUS.GATEWAY_TIMEOUT}`,
+      }).catch(() => {});
+
+      const timeoutError = new Error(timeoutMsg);
+      timeoutError.name = "StreamIdleTimeoutError";
+      streamController?.error(timeoutError);
+    },
+  });
 
   return new TransformStream(
     {
       start(controller) {
-        // Start idle watchdog — checks every 10s if provider has stopped sending
-        if (STREAM_IDLE_TIMEOUT_MS > 0) {
-          idleTimer = setInterval(() => {
-            if (!streamTimedOut && Date.now() - lastChunkTime > STREAM_IDLE_TIMEOUT_MS) {
-              streamTimedOut = true;
-              clearInterval(idleTimer);
-              idleTimer = null;
-              const timeoutMsg = `[STREAM] Idle timeout: no data from ${provider || "provider"} for ${STREAM_IDLE_TIMEOUT_MS}ms (model: ${model || "unknown"})`;
-              console.warn(timeoutMsg);
-              trackPendingRequest(model, provider, connectionId, false);
-              appendRequestLog({
-                model,
-                provider,
-                connectionId,
-                status: `FAILED ${HTTP_STATUS.GATEWAY_TIMEOUT}`,
-              }).catch(() => {});
-              const timeoutError = new Error(timeoutMsg);
-              timeoutError.name = "StreamIdleTimeoutError";
-              controller.error(timeoutError);
-            }
-          }, 10_000);
-        }
+        streamController = controller;
+        idleWatchdog.start();
       },
 
       transform(chunk, controller) {
         if (streamTimedOut) return;
-        lastChunkTime = Date.now();
+
+        idleWatchdog.markActivity();
+
         const text = decoder.decode(chunk, { stream: true });
-        buffer += text;
+        bufferRef.current += text;
         reqLogger?.appendProviderChunk?.(text);
 
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
+        const lines = bufferRef.current.split("\n");
+        bufferRef.current = lines.pop() || "";
 
         for (const line of lines) {
           const trimmed = line.trim();
 
-          // Passthrough mode: normalize and forward
           if (mode === STREAM_MODE.PASSTHROUGH) {
-            let output;
-            let injectedUsage = false;
-
-            if (trimmed.startsWith("data:") && trimmed.slice(5).trim() !== "[DONE]") {
-              try {
-                let parsed = JSON.parse(trimmed.slice(5).trim());
-
-                // Sanitize: strip non-standard fields for OpenAI SDK compatibility
-                parsed = sanitizeStreamingChunk(parsed);
-
-                const idFixed = fixInvalidId(parsed);
-
-                if (!hasValuableContent(parsed, FORMATS.OPENAI)) {
-                  continue;
-                }
-
-                const delta = parsed.choices?.[0]?.delta;
-
-                // Extract <think> tags from streaming content
-                if (delta?.content && typeof delta.content === "string") {
-                  const { content, thinking } = extractThinkingFromContent(delta.content);
-                  delta.content = content;
-                  if (thinking && !delta.reasoning_content) {
-                    delta.reasoning_content = thinking;
-                  }
-                }
-
-                const content = delta?.content || delta?.reasoning_content;
-                if (content && typeof content === "string") {
-                  totalContentLength += content.length;
-                }
-
-                const extracted = extractUsage(parsed);
-                if (extracted) {
-                  usage = extracted;
-                }
-
-                const isFinishChunk = parsed.choices?.[0]?.finish_reason;
-                if (isFinishChunk && !hasValidUsage(parsed.usage)) {
-                  const estimated = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
-                  parsed.usage = filterUsageForFormat(estimated, FORMATS.OPENAI);
-                  output = `data: ${JSON.stringify(parsed)}\n`;
-                  usage = estimated;
-                  injectedUsage = true;
-                } else if (isFinishChunk && usage) {
-                  const buffered = addBufferToUsage(usage);
-                  parsed.usage = filterUsageForFormat(buffered, FORMATS.OPENAI);
-                  output = `data: ${JSON.stringify(parsed)}\n`;
-                  injectedUsage = true;
-                } else if (idFixed) {
-                  output = `data: ${JSON.stringify(parsed)}\n`;
-                  injectedUsage = true;
-                }
-              } catch {}
-            }
-
-            if (!injectedUsage) {
-              if (line.startsWith("data:") && !line.startsWith("data: ")) {
-                output = "data: " + line.slice(5) + "\n";
-              } else {
-                output = line + "\n";
-              }
-            }
-
-            reqLogger?.appendConvertedChunk?.(output);
-            controller.enqueue(encoder.encode(output));
+            processPassthroughLine({
+              line,
+              trimmed,
+              usageRef,
+              totalContentLengthRef,
+              body,
+              reqLogger,
+              enqueueOutput: (output) => controller.enqueue(encoder.encode(output)),
+            });
             continue;
           }
 
-          // Translate mode
-          if (!trimmed) continue;
-
-          const parsed = parseSSELine(trimmed);
-          if (!parsed) continue;
-
-          if (parsed && parsed.done) {
-            if (!doneSent) {
-              doneSent = true;
-              const output = "data: [DONE]\n\n";
-              reqLogger?.appendConvertedChunk?.(output);
-              controller.enqueue(encoder.encode(output));
-            }
-            continue;
-          }
-
-          // Track content length for estimation (from various formats)
-          // Include both regular content and reasoning/thinking content
-
-          // Claude format
-          if (parsed.delta?.text) {
-            totalContentLength += parsed.delta.text.length;
-          }
-          if (parsed.delta?.thinking) {
-            totalContentLength += parsed.delta.thinking.length;
-          }
-
-          // OpenAI format
-          if (parsed.choices?.[0]?.delta?.content) {
-            totalContentLength += parsed.choices[0].delta.content.length;
-          }
-          if (parsed.choices?.[0]?.delta?.reasoning_content) {
-            totalContentLength += parsed.choices[0].delta.reasoning_content.length;
-          }
-
-          // Gemini format - may have multiple parts
-          if (parsed.candidates?.[0]?.content?.parts) {
-            for (const part of parsed.candidates[0].content.parts) {
-              if (part.text && typeof part.text === "string") {
-                totalContentLength += part.text.length;
-              }
-            }
-          }
-
-          // Extract usage
-          const extracted = extractUsage(parsed);
-          if (extracted) state.usage = extracted; // Keep original usage for logging
-
-          // Translate: targetFormat -> openai -> sourceFormat
-          const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
-
-          // Log OpenAI intermediate chunks (if available)
-          if ((translated as any)?._openaiIntermediate) {
-            for (const item of (translated as any)._openaiIntermediate) {
-              const openaiOutput = formatSSE(item, FORMATS.OPENAI);
-              reqLogger?.appendOpenAIChunk?.(openaiOutput);
-            }
-          }
-
-          if (translated?.length > 0) {
-            for (const item of translated) {
-              // Filter empty chunks
-              if (!hasValuableContent(item, sourceFormat)) {
-                continue; // Skip this empty chunk
-              }
-
-              // Inject estimated usage if finish chunk has no valid usage
-              const isFinishChunk =
-                item.type === "message_delta" || item.choices?.[0]?.finish_reason;
-              if (
-                state.finishReason &&
-                isFinishChunk &&
-                !hasValidUsage(item.usage) &&
-                totalContentLength > 0
-              ) {
-                const estimated = estimateUsage(body, totalContentLength, sourceFormat);
-                item.usage = filterUsageForFormat(estimated, sourceFormat); // Filter + already has buffer
-                state.usage = estimated;
-              } else if (state.finishReason && isFinishChunk && state.usage) {
-                // Add buffer and filter usage for client (but keep original in state.usage for logging)
-                const buffered = addBufferToUsage(state.usage);
-                item.usage = filterUsageForFormat(buffered, sourceFormat);
-              }
-
-              const output = formatSSE(item, sourceFormat);
-              reqLogger?.appendConvertedChunk?.(output);
-              controller.enqueue(encoder.encode(output));
-            }
-          }
+          processTranslateLine({
+            line,
+            trimmed,
+            targetFormat,
+            sourceFormat,
+            state,
+            body,
+            reqLogger,
+            doneSentRef,
+            totalContentLengthRef,
+            enqueueOutput: (output) => controller.enqueue(encoder.encode(output)),
+          });
         }
       },
 
       flush(controller) {
-        // Clean up idle watchdog timer
-        if (idleTimer) {
-          clearInterval(idleTimer);
-          idleTimer = null;
-        }
-        if (streamTimedOut) {
-          return;
-        }
-        trackPendingRequest(model, provider, connectionId, false);
+        idleWatchdog.stop();
+        if (streamTimedOut) return;
+
+        beginFlush(model, provider, connectionId);
+
         try {
-          const remaining = decoder.decode();
-          if (remaining) buffer += remaining;
-
           if (mode === STREAM_MODE.PASSTHROUGH) {
-            if (buffer) {
-              let output = buffer;
-              if (buffer.startsWith("data:") && !buffer.startsWith("data: ")) {
-                output = "data: " + buffer.slice(5);
-              }
-              reqLogger?.appendConvertedChunk?.(output);
-              controller.enqueue(encoder.encode(output));
-            }
-
-            // Estimate usage if provider didn't return valid usage (PASSTHROUGH is always OpenAI format)
-            if (!hasValidUsage(usage) && totalContentLength > 0) {
-              usage = estimateUsage(body, totalContentLength, FORMATS.OPENAI);
-            }
-
-            if (hasValidUsage(usage)) {
-              logUsage(provider, usage, model, connectionId, apiKeyInfo);
-            } else {
-              appendRequestLog({
-                model,
-                provider,
-                connectionId,
-                tokens: null,
-                status: "200 OK",
-              }).catch(() => {});
-            }
-            // Notify caller for call log persistence
-            if (onComplete) {
-              try {
-                onComplete({ status: 200, usage });
-              } catch {}
-            }
+            handlePassthroughFlush({
+              decoder,
+              encoder,
+              reqLogger,
+              provider,
+              model,
+              connectionId,
+              apiKeyInfo,
+              body,
+              onComplete,
+              totalContentLengthRef,
+              bufferRef,
+              usageRef,
+              enqueueBytes: (value) => controller.enqueue(value),
+            });
             return;
           }
 
-          // Translate mode: process remaining buffer
-          if (buffer.trim()) {
-            const parsed = parseSSELine(buffer.trim());
-            if (parsed && !parsed.done) {
-              const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
-
-              // Log OpenAI intermediate chunks
-              if ((translated as any)?._openaiIntermediate) {
-                for (const item of (translated as any)._openaiIntermediate) {
-                  const openaiOutput = formatSSE(item, FORMATS.OPENAI);
-                  reqLogger?.appendOpenAIChunk?.(openaiOutput);
-                }
-              }
-
-              if (translated?.length > 0) {
-                for (const item of translated) {
-                  const output = formatSSE(item, sourceFormat);
-                  reqLogger?.appendConvertedChunk?.(output);
-                  controller.enqueue(encoder.encode(output));
-                }
-              }
-            }
-          }
-
-          // Flush remaining events (only once at stream end)
-          const flushed = translateResponse(targetFormat, sourceFormat, null, state);
-
-          // Log OpenAI intermediate chunks for flushed events
-          if ((flushed as any)?._openaiIntermediate) {
-            for (const item of (flushed as any)._openaiIntermediate) {
-              const openaiOutput = formatSSE(item, FORMATS.OPENAI);
-              reqLogger?.appendOpenAIChunk?.(openaiOutput);
-            }
-          }
-
-          if (flushed?.length > 0) {
-            for (const item of flushed) {
-              const output = formatSSE(item, sourceFormat);
-              reqLogger?.appendConvertedChunk?.(output);
-              controller.enqueue(encoder.encode(output));
-            }
-          }
-
-          /**
-           * Usage injection strategy:
-           * Usage data (input/output tokens) is injected into the last content chunk
-           * or the finish_reason chunk rather than sent as a separate SSE event.
-           * This ensures all major clients (Claude CLI, Continue, Cursor) receive
-           * usage data even if they stop reading after the finish signal.
-           * The usage buffer (state.usage) accumulates across chunks and is only
-           * emitted once at stream end when merged into the final translated chunk.
-           */
-
-          // Send [DONE] (only if not already sent during transform)
-          if (!doneSent) {
-            doneSent = true;
-            const doneOutput = "data: [DONE]\n\n";
-            reqLogger?.appendConvertedChunk?.(doneOutput);
-            controller.enqueue(encoder.encode(doneOutput));
-          }
-
-          // Estimate usage if provider didn't return valid usage (for translate mode)
-          if (!hasValidUsage(state?.usage) && totalContentLength > 0) {
-            state.usage = estimateUsage(body, totalContentLength, sourceFormat);
-          }
-
-          if (hasValidUsage(state?.usage)) {
-            logUsage(state.provider || targetFormat, state.usage, model, connectionId, apiKeyInfo);
-          } else {
-            appendRequestLog({
-              model,
-              provider,
-              connectionId,
-              tokens: null,
-              status: "200 OK",
-            }).catch(() => {});
-          }
-          // Notify caller for call log persistence
-          if (onComplete) {
-            try {
-              onComplete({ status: 200, usage: state?.usage });
-            } catch {}
-          }
+          handleTranslateFlush({
+            decoder,
+            encoder,
+            reqLogger,
+            provider,
+            model,
+            connectionId,
+            apiKeyInfo,
+            body,
+            onComplete,
+            totalContentLengthRef,
+            bufferRef,
+            doneSentRef,
+            targetFormat,
+            sourceFormat,
+            state,
+            enqueueBytes: (value) => controller.enqueue(value),
+          });
         } catch (error) {
           console.log(`[STREAM] Error in flush (${model || "unknown"}):`, error.message || error);
         }
