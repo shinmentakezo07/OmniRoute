@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@swc/helpers": "^0.5.19",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
     "bottleneck": "^2.19.5",

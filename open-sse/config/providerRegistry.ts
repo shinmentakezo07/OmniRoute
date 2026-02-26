@@ -814,6 +814,26 @@ export const REGISTRY: Record<string, RegistryEntry> = {
       { id: "NousResearch/Hermes-3-Llama-3.1-70B", name: "Hermes 3 70B" },
     ],
   },
+
+  litellm: {
+    id: "litellm",
+    alias: "litellm",
+    format: "openai",
+    executor: "litellm",
+    baseUrl: process.env.LITELLM_PROXY_URL || "http://localhost:4000",
+    authType: "apikey",
+    authHeader: "bearer",
+    passthroughModels: true,
+    models: [
+      { id: "bedrock-claude-3-5-sonnet", name: "Claude 3.5 Sonnet (Bedrock)" },
+      { id: "bedrock-claude-3-opus", name: "Claude 3 Opus (Bedrock)" },
+      { id: "vertex-gemini-2.0-flash", name: "Gemini 2.0 Flash (Vertex)" },
+      { id: "vertex-gemini-1.5-pro", name: "Gemini 1.5 Pro (Vertex)" },
+      { id: "together-llama-3.3-70b", name: "Llama 3.3 70B (Together)" },
+      { id: "together-qwen-2.5-72b", name: "Qwen 2.5 72B (Together)" },
+      { id: "*", name: "Custom Model" },
+    ],
+  },
 };
 
 // ── Generator Functions ───────────────────────────────────────────────────
@@ -920,23 +940,3 @@ export function getProviderCategory(provider: string): "oauth" | "apikey" {
   if (!entry) return "apikey"; // Safe default for unknown providers
   return entry.authType === "apikey" ? "apikey" : "oauth";
 }
-
-  litellm: {
-    id: "litellm",
-    alias: "litellm",
-    format: "openai",
-    executor: "litellm",
-    baseUrl: process.env.LITELLM_PROXY_URL || "http://localhost:4000",
-    authType: "apikey",
-    authHeader: "bearer",
-    passthroughModels: true,
-    models: [
-      { id: "bedrock-claude-3-5-sonnet", name: "Claude 3.5 Sonnet (Bedrock)" },
-      { id: "bedrock-claude-3-opus", name: "Claude 3 Opus (Bedrock)" },
-      { id: "vertex-gemini-2.0-flash", name: "Gemini 2.0 Flash (Vertex)" },
-      { id: "vertex-gemini-1.5-pro", name: "Gemini 1.5 Pro (Vertex)" },
-      { id: "together-llama-3.3-70b", name: "Llama 3.3 70B (Together)" },
-      { id: "together-qwen-2.5-72b", name: "Qwen 2.5 72B (Together)" },
-      { id: "*", name: "Custom Model" },
-    ],
-  },
