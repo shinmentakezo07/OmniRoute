@@ -6,6 +6,7 @@ import { KiroExecutor } from "./kiro.ts";
 import { CodexExecutor } from "./codex.ts";
 import { CursorExecutor } from "./cursor.ts";
 import { DefaultExecutor } from "./default.ts";
+import { LiteLLMExecutor } from "./litellm.ts";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
@@ -16,6 +17,7 @@ const executors = {
   codex: new CodexExecutor(),
   cursor: new CursorExecutor(),
   cu: new CursorExecutor(), // Alias for cursor
+  litellm: new LiteLLMExecutor(),
 };
 
 const defaultCache = new Map();
@@ -39,3 +41,4 @@ export { KiroExecutor } from "./kiro.ts";
 export { CodexExecutor } from "./codex.ts";
 export { CursorExecutor } from "./cursor.ts";
 export { DefaultExecutor } from "./default.ts";
+export { LiteLLMExecutor } from "./litellm.ts";

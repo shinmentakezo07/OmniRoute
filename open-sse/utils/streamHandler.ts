@@ -24,12 +24,15 @@ export function createStreamController({ onDisconnect, log, provider, model }: a
   const startTime = Date.now();
   let disconnected = false;
   let abortTimeout = null;
+  let bytesProcessed = 0;
+  let chunksProcessed = 0;
 
   const logStream = (status) => {
     const duration = Date.now() - startTime;
     const p = provider?.toUpperCase() || "UNKNOWN";
+    const throughput = bytesProcessed > 0 ? (bytesProcessed / (duration / 1000)).toFixed(0) : "0";
     console.log(
-      `[${getTimeString()}] 🌊 [STREAM] ${p} | ${model || "unknown"} | ${duration}ms | ${status}`
+      `[${getTimeString()}] 🌊 [STREAM] ${p} | ${model || "unknown"} | ${duration}ms | ${chunksProcessed} chunks | ${throughput} B/s | ${status}`
     );
   };
 
@@ -38,6 +41,18 @@ export function createStreamController({ onDisconnect, log, provider, model }: a
     startTime,
 
     isConnected: () => !disconnected,
+
+    trackChunk: (byteCount: number) => {
+      bytesProcessed += byteCount;
+      chunksProcessed++;
+    },
+
+    getMetrics: () => ({
+      bytesProcessed,
+      chunksProcessed,
+      duration: Date.now() - startTime,
+      throughput: bytesProcessed / ((Date.now() - startTime) / 1000),
+    }),
 
     // Call when client disconnects
     handleDisconnect: (reason = "client_closed") => {
@@ -51,7 +66,12 @@ export function createStreamController({ onDisconnect, log, provider, model }: a
         abortController.abort();
       }, 500);
 
-      onDisconnect?.({ reason, duration: Date.now() - startTime });
+      onDisconnect?.({ 
+        reason, 
+        duration: Date.now() - startTime,
+        bytesProcessed,
+        chunksProcessed,
+      });
     },
 
     // Call when stream completes normally

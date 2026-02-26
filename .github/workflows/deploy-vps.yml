@@ -35,10 +35,10 @@ jobs:
             echo "Installed version: $INSTALLED_VERSION"
 
             echo "=== Restarting PM2 ==="
-            pm2 restart omniroute || pm2 start omniroute --name omniroute -- --port 20128
+            pm2 restart omniroute || pm2 start omniroute --name omniroute -- --port 8080
             pm2 save
 
             echo "=== Health Check ==="
             sleep 3
-            curl -sf http://localhost:20128/api/settings > /dev/null && echo "✅ OmniRoute is healthy" || echo "❌ Health check failed"
+            curl -sf http://localhost:8080/api/settings > /dev/null && echo "✅ OmniRoute is healthy" || echo "❌ Health check failed"
             echo "=== Deploy complete ==="

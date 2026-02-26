@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? "github" : "html",
   use: {
-    baseURL: "http://localhost:20128",
+    baseURL: "http://localhost:8080",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -19,8 +19,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: process.env.CI ? "npm start" : "npm run dev",
-    url: "http://localhost:20128",
+    url: "http://localhost:8080",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

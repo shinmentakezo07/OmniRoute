@@ -14,6 +14,7 @@ export function createIdleWatchdog(options: IdleWatchdogOptions) {
   let lastChunkTime = Date.now();
   let timer: ReturnType<typeof setInterval> | null = null;
   let timedOut = false;
+  let activityCount = 0;
 
   function stop() {
     if (timer) {
@@ -25,6 +26,9 @@ export function createIdleWatchdog(options: IdleWatchdogOptions) {
   function start() {
     if (timeoutMs <= 0 || timer) return;
 
+    // Optimize check interval based on timeout duration
+    const optimizedInterval = Math.min(checkIntervalMs, Math.max(1000, timeoutMs / 4));
+
     timer = setInterval(() => {
       if (timedOut) return;
       if (Date.now() - lastChunkTime > timeoutMs) {
@@ -32,16 +36,25 @@ export function createIdleWatchdog(options: IdleWatchdogOptions) {
         stop();
         onTimeout();
       }
-    }, checkIntervalMs);
+    }, optimizedInterval);
   }
 
   function markActivity() {
     if (timedOut) return;
     lastChunkTime = Date.now();
+    activityCount++;
   }
 
   function isTimedOut() {
     return timedOut;
+  }
+
+  function getActivityCount() {
+    return activityCount;
+  }
+
+  function getIdleDuration() {
+    return Date.now() - lastChunkTime;
   }
 
   return {
@@ -49,5 +62,7 @@ export function createIdleWatchdog(options: IdleWatchdogOptions) {
     stop,
     markActivity,
     isTimedOut,
+    getActivityCount,
+    getIdleDuration,
   };
 }

@@ -253,7 +253,7 @@ Cost: $0 forever!
 
 ```
 Settings → Models → Advanced:
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:8080/v1
   OpenAI API Key: [from omniroute dashboard]
   Model: cc/claude-opus-4-6
 ```
@@ -264,7 +264,7 @@ Edit `~/.claude/config.json`:
 
 ```json
 {
-  "anthropic_api_base": "http://localhost:20128/v1",
+  "anthropic_api_base": "http://localhost:8080/v1",
   "anthropic_api_key": "your-omniroute-api-key"
 }
 ```
@@ -272,7 +272,7 @@ Edit `~/.claude/config.json`:
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:8080"
 export OPENAI_API_KEY="your-omniroute-api-key"
 codex "your prompt"
 ```
@@ -291,7 +291,7 @@ Edit `~/.openclaw/openclaw.json`:
   "models": {
     "providers": {
       "omniroute": {
-        "baseUrl": "http://localhost:20128/v1",
+        "baseUrl": "http://localhost:8080/v1",
         "apiKey": "your-omniroute-api-key",
         "api": "openai-completions",
         "models": [{ "id": "if/glm-4.7", "name": "glm-4.7" }]
@@ -307,7 +307,7 @@ Edit `~/.openclaw/openclaw.json`:
 
 ```
 Provider: OpenAI Compatible
-Base URL: http://localhost:20128/v1
+Base URL: http://localhost:8080/v1
 API Key: [from dashboard]
 Model: cc/claude-opus-4-6
 ```
@@ -325,10 +325,10 @@ cd OmniRoute && npm install && npm run build
 export JWT_SECRET="your-secure-secret-change-this"
 export INITIAL_PASSWORD="your-password"
 export DATA_DIR="/var/lib/omniroute"
-export PORT="20128"
+export PORT="8080"
 export HOSTNAME="0.0.0.0"
 export NODE_ENV="production"
-export NEXT_PUBLIC_BASE_URL="http://localhost:20128"
+export NEXT_PUBLIC_BASE_URL="http://localhost:8080"
 export API_KEY_SECRET="endpoint-proxy-api-key-secret"
 
 npm run start
@@ -342,7 +342,7 @@ npm run start
 docker build -t omniroute:cli .
 
 # Portable mode (recommended)
-docker run -d --name omniroute -p 20128:20128 --env-file ./.env -v omniroute-data:/app/data omniroute:cli
+docker run -d --name omniroute -p 8080:8080 --env-file ./.env -v omniroute-data:/app/data omniroute:cli
 ```
 
 For host-integrated mode with CLI binaries, see the Docker section in the main docs.
@@ -354,10 +354,10 @@ For host-integrated mode with CLI binaries, see the Docker section in the main d
 | `JWT_SECRET`          | `omniroute-default-secret-change-me` | JWT signing secret (**change in production**)           |
 | `INITIAL_PASSWORD`    | `123456`                             | First login password                                    |
 | `DATA_DIR`            | `~/.omniroute`                       | Data directory (db, usage, logs)                        |
-| `PORT`                | framework default                    | Service port (`20128` in examples)                      |
+| `PORT`                | framework default                    | Service port (`8080` in examples)                      |
 | `HOSTNAME`            | framework default                    | Bind host (Docker defaults to `0.0.0.0`)                |
 | `NODE_ENV`            | runtime default                      | Set `production` for deploy                             |
-| `BASE_URL`            | `http://localhost:20128`             | Server-side internal base URL                           |
+| `BASE_URL`            | `http://localhost:8080`             | Server-side internal base URL                           |
 | `CLOUD_URL`           | `https://omniroute.dev`              | Cloud sync endpoint base URL                            |
 | `API_KEY_SECRET`      | `endpoint-proxy-api-key-secret`      | HMAC secret for generated API keys                      |
 | `REQUIRE_API_KEY`     | `false`                              | Enforce Bearer API key on `/v1/*`                       |
@@ -423,12 +423,12 @@ Add any model ID to any provider without waiting for an app update:
 
 ```bash
 # Via API
-curl -X POST http://localhost:20128/api/provider-models \
+curl -X POST http://localhost:8080/api/provider-models \
   -H "Content-Type: application/json" \
   -d '{"provider": "openai", "modelId": "gpt-4.5-preview", "modelName": "GPT-4.5 Preview"}'
 
-# List: curl http://localhost:20128/api/provider-models?provider=openai
-# Remove: curl -X DELETE "http://localhost:20128/api/provider-models?provider=openai&model=gpt-4.5-preview"
+# List: curl http://localhost:8080/api/provider-models?provider=openai
+# Remove: curl -X DELETE "http://localhost:8080/api/provider-models?provider=openai&model=gpt-4.5-preview"
 ```
 
 Or use Dashboard: **Providers → [Provider] → Custom Models**.
@@ -438,9 +438,9 @@ Or use Dashboard: **Providers → [Provider] → Custom Models**.
 Route requests directly to a specific provider with model validation:
 
 ```bash
-POST http://localhost:20128/v1/providers/openai/chat/completions
-POST http://localhost:20128/v1/providers/openai/embeddings
-POST http://localhost:20128/v1/providers/fireworks/images/generations
+POST http://localhost:8080/v1/providers/openai/chat/completions
+POST http://localhost:8080/v1/providers/openai/embeddings
+POST http://localhost:8080/v1/providers/fireworks/images/generations
 ```
 
 The provider prefix is auto-added if missing. Mismatched models return `400`.
@@ -449,15 +449,15 @@ The provider prefix is auto-added if missing. Mismatched models return `400`.
 
 ```bash
 # Set global proxy
-curl -X PUT http://localhost:20128/api/settings/proxy \
+curl -X PUT http://localhost:8080/api/settings/proxy \
   -d '{"global": {"type":"http","host":"proxy.example.com","port":"8080"}}'
 
 # Per-provider proxy
-curl -X PUT http://localhost:20128/api/settings/proxy \
+curl -X PUT http://localhost:8080/api/settings/proxy \
   -d '{"providers": {"openai": {"type":"socks5","host":"proxy.example.com","port":"1080"}}}'
 
 # Test proxy
-curl -X POST http://localhost:20128/api/settings/proxy/test \
+curl -X POST http://localhost:8080/api/settings/proxy/test \
   -d '{"proxy":{"type":"socks5","host":"proxy.example.com","port":"1080"}}'
 ```
 
@@ -466,7 +466,7 @@ curl -X POST http://localhost:20128/api/settings/proxy/test \
 ### Model Catalog API
 
 ```bash
-curl http://localhost:20128/api/models/catalog
+curl http://localhost:8080/api/models/catalog
 ```
 
 Returns models grouped by provider with types (`chat`, `embedding`, `image`).
@@ -584,13 +584,13 @@ Manage database backups in **Dashboard → Settings → System & Storage**.
 
 ```bash
 # API: Export database
-curl -o backup.sqlite http://localhost:20128/api/db-backups/export
+curl -o backup.sqlite http://localhost:8080/api/db-backups/export
 
 # API: Export all (full archive)
-curl -o backup.tar.gz http://localhost:20128/api/db-backups/exportAll
+curl -o backup.tar.gz http://localhost:8080/api/db-backups/exportAll
 
 # API: Import database
-curl -X POST http://localhost:20128/api/db-backups/import \
+curl -X POST http://localhost:8080/api/db-backups/import \
   -F "file=@backup.sqlite"
 ```
 
@@ -629,12 +629,12 @@ Access via **Dashboard → Costs**.
 
 ```bash
 # API: Set a budget
-curl -X POST http://localhost:20128/api/usage/budget \
+curl -X POST http://localhost:8080/api/usage/budget \
   -H "Content-Type: application/json" \
   -d '{"keyId": "key-123", "limit": 50.00, "period": "monthly"}'
 
 # API: Get current budget status
-curl http://localhost:20128/api/usage/budget
+curl http://localhost:8080/api/usage/budget
 ```
 
 **Cost Tracking:** Every request logs token usage and calculates cost using the pricing table. View breakdowns in **Dashboard → Usage** by provider, model, and API key.
@@ -651,7 +651,7 @@ Authorization: Bearer your-api-key
 Content-Type: multipart/form-data
 
 # Example with curl
-curl -X POST http://localhost:20128/v1/audio/transcriptions \
+curl -X POST http://localhost:8080/v1/audio/transcriptions \
   -H "Authorization: Bearer your-api-key" \
   -F "file=@audio.mp3" \
   -F "model=deepgram/nova-3"

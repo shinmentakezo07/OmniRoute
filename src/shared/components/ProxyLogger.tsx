@@ -64,9 +64,10 @@ export default function ProxyLogger() {
   const toggleColumn = useCallback((key) => {
     setVisibleColumns((prev) => {
       const next = { ...prev, [key]: !prev[key] };
-      try {
-        localStorage.setItem("proxyLoggerVisibleColumns", JSON.stringify(next));
-      } catch {}
+      safeLocalStorage(
+        () => localStorage.setItem("proxyLoggerVisibleColumns", JSON.stringify(next)),
+        { component: 'ProxyLogger', action: 'save column visibility' }
+      );
       return next;
     });
   }, []);

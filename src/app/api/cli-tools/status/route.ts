@@ -33,7 +33,7 @@ async function checkToolConfigStatus(toolId: string): Promise<string> {
       case "kilo":
         // Generic check: look for any OmniRoute-related URL in the config
         const configStr = JSON.stringify(config).toLowerCase();
-        return configStr.includes("omniroute") || configStr.includes("20128")
+        return configStr.includes("omniroute") || configStr.includes("8080")
           ? "configured"
           : "not_configured";
       default:

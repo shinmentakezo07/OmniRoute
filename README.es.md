@@ -92,7 +92,7 @@ _Conecta cualquier IDE o herramienta CLI con IA a través de OmniRoute — gatew
     </tr>
   </table>
 
-<sub>📡 Todos los agentes se conectan vía <code>http://localhost:20128/v1</code> o <code>http://cloud.omniroute.online/v1</code> — una configuración, modelos y cuota ilimitados</sub>
+<sub>📡 Todos los agentes se conectan vía <code>http://localhost:8080/v1</code> o <code>http://cloud.omniroute.online/v1</code> — una configuración, modelos y cuota ilimitados</sub>
 
 ---
 
@@ -135,7 +135,7 @@ _Conecta cualquier IDE o herramienta CLI con IA a través de OmniRoute — gatew
 │  Tu CLI     │  (Claude Code, Codex, Gemini CLI, OpenClaw, Cursor, Cline...)
 │   Tool      │
 └──────┬──────┘
-       │ http://localhost:20128/v1
+       │ http://localhost:8080/v1
        ↓
 ┌─────────────────────────────────────────┐
 │        OmniRoute (Enrutador Inteligente)  │
@@ -166,11 +166,11 @@ npm install -g omniroute
 omniroute
 ```
 
-🎉 El Dashboard se abre en `http://localhost:20128`
+🎉 El Dashboard se abre en `http://localhost:8080`
 
 | Comando                 | Descripción                                    |
 | ----------------------- | ---------------------------------------------- |
-| `omniroute`             | Iniciar servidor (puerto predeterminado 20128) |
+| `omniroute`             | Iniciar servidor (puerto predeterminado 8080) |
 | `omniroute --port 3000` | Usar puerto personalizado                      |
 | `omniroute --no-open`   | No abrir navegador automáticamente             |
 | `omniroute --help`      | Mostrar ayuda                                  |
@@ -183,7 +183,7 @@ Dashboard → Proveedores → Conectar **Claude Code** o **Antigravity** → Log
 
 ```
 Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline Configuración:
-  Endpoint: http://localhost:20128/v1
+  Endpoint: http://localhost:8080/v1
   API Key: [copiar del dashboard]
   Model: if/kimi-k2-thinking
 ```
@@ -195,7 +195,7 @@ Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline Configuración:
 ```bash
 cp .env.example .env
 npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=8080 NEXT_PUBLIC_BASE_URL=http://localhost:8080 npm run dev
 ```
 
 ---
@@ -210,7 +210,7 @@ OmniRoute está disponible como imagen Docker pública en [Docker Hub](https://h
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -225,7 +225,7 @@ docker run -d \
   --name omniroute \
   --restart unless-stopped \
   --env-file .env \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -696,7 +696,7 @@ Costo: ¡$0 para siempre!
 
 ```
 Configuración → Modelos → Avanzado:
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:8080/v1
   OpenAI API Key: [del dashboard OmniRoute]
   Model: cc/claude-opus-4-6
 ```
@@ -708,7 +708,7 @@ Usa la página **CLI Tools** en el dashboard para configuración en un clic, o e
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:8080"
 export OPENAI_API_KEY="your-omniroute-api-key"
 
 codex "your prompt"
@@ -729,7 +729,7 @@ Dashboard → CLI Tools → OpenClaw → Seleccionar Modelo → Aplicar
   "models": {
     "providers": {
       "omniroute": {
-        "baseUrl": "http://127.0.0.1:20128/v1",
+        "baseUrl": "http://127.0.0.1:8080/v1",
         "apiKey": "sk_omniroute",
         "api": "openai-completions"
       }
@@ -745,7 +745,7 @@ Dashboard → CLI Tools → OpenClaw → Seleccionar Modelo → Aplicar
 ```
 Configuración → Configuración de API:
   Proveedor: OpenAI Compatible
-  Base URL: http://localhost:20128/v1
+  Base URL: http://localhost:8080/v1
   API Key: [del dashboard OmniRoute]
   Model: if/kimi-k2-thinking
 ```
@@ -873,7 +873,7 @@ El "OmniRoute Golden Set" precargado contiene 10 casos de prueba que cubren:
 
 **Dashboard se abre en el puerto equivocado**
 
-- Establece `PORT=20128` y `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+- Establece `PORT=8080` y `NEXT_PUBLIC_BASE_URL=http://localhost:8080`
 
 **Errores de cloud sync**
 

@@ -271,6 +271,16 @@ export const APIKEY_PROVIDERS = {
     textIcon: "NB",
     website: "https://nanobananaapi.ai",
   },
+  litellm: {
+    id: "litellm",
+    alias: "litellm",
+    name: "LiteLLM Gateway",
+    icon: "hub",
+    color: "#8B5CF6",
+    textIcon: "LL",
+    website: "https://docs.litellm.ai",
+    passthroughModels: true,
+  },
 };
 
 export const OPENAI_COMPATIBLE_PREFIX = "openai-compatible-";

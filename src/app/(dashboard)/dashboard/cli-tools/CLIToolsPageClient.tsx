@@ -150,7 +150,7 @@ export default function CLIToolsPageClient({ machineId }) {
     if (typeof window !== "undefined") {
       return window.location.origin;
     }
-    return "http://localhost:20128";
+    return "http://localhost:8080";
   };
 
   if (loading || !statusesLoaded) {

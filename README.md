@@ -94,7 +94,7 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
     </tr>
   </table>
 
-<sub>📡 All agents connect via <code>http://localhost:20128/v1</code> or <code>http://cloud.omniroute.online/v1</code> — one config, unlimited models and quota</sub>
+<sub>📡 All agents connect via <code>http://localhost:8080/v1</code> or <code>http://cloud.omniroute.online/v1</code> — one config, unlimited models and quota</sub>
 
 ---
 
@@ -137,7 +137,7 @@ _Connect any AI-powered IDE or CLI tool through OmniRoute — free API gateway f
 │  Your CLI   │  (Claude Code, Codex, Gemini CLI, OpenClaw, Cursor, Cline...)
 │   Tool      │
 └──────┬──────┘
-       │ http://localhost:20128/v1
+       │ http://localhost:8080/v1
        ↓
 ┌─────────────────────────────────────────┐
 │           OmniRoute (Smart Router)        │
@@ -168,11 +168,11 @@ npm install -g omniroute
 omniroute
 ```
 
-🎉 Dashboard opens at `http://localhost:20128`
+🎉 Dashboard opens at `http://localhost:8080`
 
 | Command                 | Description                       |
 | ----------------------- | --------------------------------- |
-| `omniroute`             | Start server (default port 20128) |
+| `omniroute`             | Start server (default port 8080) |
 | `omniroute --port 3000` | Use custom port                   |
 | `omniroute --no-open`   | Don't auto-open browser           |
 | `omniroute --help`      | Show help                         |
@@ -185,7 +185,7 @@ Dashboard → Providers → Connect **Claude Code** or **Antigravity** → OAuth
 
 ```
 Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline Settings:
-  Endpoint: http://localhost:20128/v1
+  Endpoint: http://localhost:8080/v1
   API Key: [copy from dashboard]
   Model: if/kimi-k2-thinking
 ```
@@ -197,7 +197,7 @@ Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline Settings:
 ```bash
 cp .env.example .env
 npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=8080 NEXT_PUBLIC_BASE_URL=http://localhost:8080 npm run dev
 ```
 
 ---
@@ -212,7 +212,7 @@ OmniRoute is available as a public Docker image on [Docker Hub](https://hub.dock
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -227,7 +227,7 @@ docker run -d \
   --name omniroute \
   --restart unless-stopped \
   --env-file .env \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -713,7 +713,7 @@ Cost: $0 forever!
 
 ```
 Settings → Models → Advanced:
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:8080/v1
   OpenAI API Key: [from OmniRoute dashboard]
   Model: cc/claude-opus-4-6
 ```
@@ -725,7 +725,7 @@ Use the **CLI Tools** page in the dashboard for one-click configuration, or edit
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:8080"
 export OPENAI_API_KEY="your-omniroute-api-key"
 
 codex "your prompt"
@@ -746,7 +746,7 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
   "models": {
     "providers": {
       "omniroute": {
-        "baseUrl": "http://127.0.0.1:20128/v1",
+        "baseUrl": "http://127.0.0.1:8080/v1",
         "apiKey": "sk_omniroute",
         "api": "openai-completions"
       }
@@ -762,7 +762,7 @@ Dashboard → CLI Tools → OpenClaw → Select Model → Apply
 ```
 Settings → API Configuration:
   Provider: OpenAI Compatible
-  Base URL: http://localhost:20128/v1
+  Base URL: http://localhost:8080/v1
   API Key: [from OmniRoute dashboard]
   Model: if/kimi-k2-thinking
 ```
@@ -902,7 +902,7 @@ No campo **"Authorized redirect URIs"**, adicione:
 https://seu-servidor.com/callback
 ```
 
-> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:20128/callback`).
+> Substitua `seu-servidor.com` pelo domínio ou IP do seu servidor (inclua a porta se necessário, ex: `http://45.33.32.156:8080/callback`).
 
 **4. Salve e copie as credenciais**
 
@@ -983,7 +983,7 @@ Se não quiser criar credenciais próprias agora, ainda é possível usar o flux
 
 **Dashboard opens on wrong port**
 
-- Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+- Set `PORT=8080` and `NEXT_PUBLIC_BASE_URL=http://localhost:8080`
 
 **Cloud sync errors**
 
@@ -1184,13 +1184,13 @@ npx omniroute@latest
 # Ou rodar do código-fonte
 cp .env.example .env
 npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=8080 NEXT_PUBLIC_BASE_URL=http://localhost:8080 npm run dev
 ```
 
 ### 🐳 Docker
 
 ```bash
-docker run -d --name omniroute -p 20128:20128 diegosouzapw/omniroute:latest
+docker run -d --name omniroute -p 8080:8080 diegosouzapw/omniroute:latest
 ```
 
 ### 🔑 Funcionalidades Principais

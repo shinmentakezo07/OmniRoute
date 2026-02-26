@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Card from "./Card";
 import RequestLoggerDetail from "./RequestLoggerDetail";
+import { safeLocalStorage } from "@/shared/utils/errorHandler";
 import {
   PROTOCOL_COLORS,
   PROVIDER_COLORS,
@@ -105,9 +106,10 @@ export default function RequestLoggerV2() {
   const toggleColumn = useCallback((key) => {
     setVisibleColumns((prev) => {
       const next = { ...prev, [key]: !prev[key] };
-      try {
-        localStorage.setItem("loggerVisibleColumns", JSON.stringify(next));
-      } catch {}
+      safeLocalStorage(
+        () => localStorage.setItem("loggerVisibleColumns", JSON.stringify(next)),
+        { component: 'RequestLoggerV2', action: 'save column visibility' }
+      );
       return next;
     });
   }, []);

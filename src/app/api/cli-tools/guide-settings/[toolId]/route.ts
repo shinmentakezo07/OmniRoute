@@ -68,7 +68,7 @@ async function saveContinueConfig({ baseUrl, apiKey, model }) {
   const existingIdx = models.findIndex(
     (m) =>
       m.apiBase &&
-      (m.apiBase.includes("localhost:20128") ||
+      (m.apiBase.includes("localhost:8080") ||
         m.apiBase.includes("omniroute") ||
         m.title === model)
   );

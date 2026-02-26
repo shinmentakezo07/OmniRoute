@@ -252,14 +252,14 @@ export default function OAuthModal({
       } else if (GOOGLE_OAUTH_PROVIDERS.includes(provider)) {
         // Google OAuth built-in credentials only accept localhost redirect URIs.
         // Even in remote deployments we use localhost — user copies the callback URL manually.
-        const port = window.location.port || "20128";
+        const port = window.location.port || "8080";
         redirectUri = `http://localhost:${port}/callback`;
       } else if (!isLocalhost) {
         // Behind reverse proxy: use actual origin (e.g., https://omniroute.example.com/callback)
         // Supports PUBLIC_URL env var override, or falls back to window.location.origin.
         const publicUrl = process.env.NEXT_PUBLIC_BASE_URL;
         const origin =
-          publicUrl && publicUrl !== "http://localhost:20128"
+          publicUrl && publicUrl !== "http://localhost:8080"
             ? publicUrl.replace(/\/$/, "")
             : window.location.origin;
         redirectUri = `${origin}/callback`;

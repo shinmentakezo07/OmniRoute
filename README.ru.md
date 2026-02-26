@@ -92,7 +92,7 @@ _Подключайте любую IDE или CLI-инструмент с AI ч�
     </tr>
   </table>
 
-<sub>📡 Все агенты подключаются через <code>http://localhost:20128/v1</code> или <code>http://cloud.omniroute.online/v1</code> — одна конфигурация, неограниченные модели и квота</sub>
+<sub>📡 Все агенты подключаются через <code>http://localhost:8080/v1</code> или <code>http://cloud.omniroute.online/v1</code> — одна конфигурация, неограниченные модели и квота</sub>
 
 ---
 
@@ -135,7 +135,7 @@ _Подключайте любую IDE или CLI-инструмент с AI ч�
 │  Ваш CLI    │  (Claude Code, Codex, Gemini CLI, OpenClaw, Cursor, Cline...)
 │   Tool      │
 └──────┬──────┘
-       │ http://localhost:20128/v1
+       │ http://localhost:8080/v1
        ↓
 ┌─────────────────────────────────────────┐
 │        OmniRoute (Умный маршрутизатор)   │
@@ -166,11 +166,11 @@ npm install -g omniroute
 omniroute
 ```
 
-🎉 Dashboard открывается на `http://localhost:20128`
+🎉 Dashboard открывается на `http://localhost:8080`
 
 | Команда                 | Описание                                   |
 | ----------------------- | ------------------------------------------ |
-| `omniroute`             | Запустить сервер (порт по умолчанию 20128) |
+| `omniroute`             | Запустить сервер (порт по умолчанию 8080) |
 | `omniroute --port 3000` | Использовать другой порт                   |
 | `omniroute --no-open`   | Не открывать браузер автоматически         |
 | `omniroute --help`      | Показать справку                           |
@@ -183,7 +183,7 @@ Dashboard → Провайдеры → Подключить **Claude Code** ил
 
 ```
 Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline Настройки:
-  Endpoint: http://localhost:20128/v1
+  Endpoint: http://localhost:8080/v1
   API Key: [скопируйте из dashboard]
   Model: if/kimi-k2-thinking
 ```
@@ -195,7 +195,7 @@ Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline Настройки:
 ```bash
 cp .env.example .env
 npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=8080 NEXT_PUBLIC_BASE_URL=http://localhost:8080 npm run dev
 ```
 
 ---
@@ -210,7 +210,7 @@ OmniRoute доступен как публичный Docker-образ на [Doc
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -225,7 +225,7 @@ docker run -d \
   --name omniroute \
   --restart unless-stopped \
   --env-file .env \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -696,7 +696,7 @@ Dashboard → Комбо → Создать новое
 
 ```
 Настройки → Модели → Расширенные:
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:8080/v1
   OpenAI API Key: [из dashboard OmniRoute]
   Model: cc/claude-opus-4-6
 ```
@@ -708,7 +708,7 @@ Dashboard → Комбо → Создать новое
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:8080"
 export OPENAI_API_KEY="your-omniroute-api-key"
 
 codex "your prompt"
@@ -729,7 +729,7 @@ Dashboard → CLI Tools → OpenClaw → Выбрать модель → При�
   "models": {
     "providers": {
       "omniroute": {
-        "baseUrl": "http://127.0.0.1:20128/v1",
+        "baseUrl": "http://127.0.0.1:8080/v1",
         "apiKey": "sk_omniroute",
         "api": "openai-completions"
       }
@@ -745,7 +745,7 @@ Dashboard → CLI Tools → OpenClaw → Выбрать модель → При�
 ```
 Настройки → Конфигурация API:
   Провайдер: OpenAI Compatible
-  Base URL: http://localhost:20128/v1
+  Base URL: http://localhost:8080/v1
   API Key: [из dashboard OmniRoute]
   Model: if/kimi-k2-thinking
 ```
@@ -873,7 +873,7 @@ OmniRoute включает встроенный фреймворк оценки 
 
 **Dashboard открывается на неправильном порту**
 
-- Установите `PORT=20128` и `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+- Установите `PORT=8080` и `NEXT_PUBLIC_BASE_URL=http://localhost:8080`
 
 **Ошибки cloud sync**
 

@@ -92,7 +92,7 @@ _通过 OmniRoute 连接任何 AI 驱动的 IDE 或 CLI 工具 — 免费 API �
     </tr>
   </table>
 
-<sub>📡 所有代理通过 <code>http://localhost:20128/v1</code> 或 <code>http://cloud.omniroute.online/v1</code> 连接 — 一个配置，无限模型和配额</sub>
+<sub>📡 所有代理通过 <code>http://localhost:8080/v1</code> 或 <code>http://cloud.omniroute.online/v1</code> 连接 — 一个配置，无限模型和配额</sub>
 
 ---
 
@@ -135,7 +135,7 @@ _通过 OmniRoute 连接任何 AI 驱动的 IDE 或 CLI 工具 — 免费 API �
 │  您的 CLI   │  (Claude Code, Codex, Gemini CLI, OpenClaw, Cursor, Cline...)
 │   工具      │
 └──────┬──────┘
-       │ http://localhost:20128/v1
+       │ http://localhost:8080/v1
        ↓
 ┌─────────────────────────────────────────┐
 │         OmniRoute（智能路由器）           │
@@ -166,11 +166,11 @@ npm install -g omniroute
 omniroute
 ```
 
-🎉 仪表板在 `http://localhost:20128` 打开
+🎉 仪表板在 `http://localhost:8080` 打开
 
 | 命令                    | 描述                         |
 | ----------------------- | ---------------------------- |
-| `omniroute`             | 启动服务器（默认端口 20128） |
+| `omniroute`             | 启动服务器（默认端口 8080） |
 | `omniroute --port 3000` | 使用自定义端口               |
 | `omniroute --no-open`   | 不自动打开浏览器             |
 | `omniroute --help`      | 显示帮助                     |
@@ -183,7 +183,7 @@ omniroute
 
 ```
 Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline 设置：
-  Endpoint: http://localhost:20128/v1
+  Endpoint: http://localhost:8080/v1
   API Key: [从仪表板复制]
   Model: if/kimi-k2-thinking
 ```
@@ -195,7 +195,7 @@ Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline 设置：
 ```bash
 cp .env.example .env
 npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=8080 NEXT_PUBLIC_BASE_URL=http://localhost:8080 npm run dev
 ```
 
 ---
@@ -210,7 +210,7 @@ OmniRoute 作为公共 Docker 镜像在 [Docker Hub](https://hub.docker.com/r/di
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -225,7 +225,7 @@ docker run -d \
   --name omniroute \
   --restart unless-stopped \
   --env-file .env \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -696,7 +696,7 @@ Combo: "my-coding-stack"
 
 ```
 设置 → 模型 → 高级：
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:8080/v1
   OpenAI API Key: [从 OmniRoute 仪表板获取]
   Model: cc/claude-opus-4-6
 ```
@@ -708,7 +708,7 @@ Combo: "my-coding-stack"
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:8080"
 export OPENAI_API_KEY="your-omniroute-api-key"
 
 codex "your prompt"
@@ -729,7 +729,7 @@ codex "your prompt"
   "models": {
     "providers": {
       "omniroute": {
-        "baseUrl": "http://127.0.0.1:20128/v1",
+        "baseUrl": "http://127.0.0.1:8080/v1",
         "apiKey": "sk_omniroute",
         "api": "openai-completions"
       }
@@ -745,7 +745,7 @@ codex "your prompt"
 ```
 设置 → API 配置：
   提供商：OpenAI Compatible
-  Base URL: http://localhost:20128/v1
+  Base URL: http://localhost:8080/v1
   API Key: [从 OmniRoute 仪表板获取]
   Model: if/kimi-k2-thinking
 ```
@@ -873,7 +873,7 @@ OmniRoute 包含内置评估框架，用于针对黄金集测试 LLM 响应质�
 
 **仪表板在错误端口打开**
 
-- 设置 `PORT=20128` 和 `NEXT_PUBLIC_BASE_URL=http://localhost:20128`
+- 设置 `PORT=8080` 和 `NEXT_PUBLIC_BASE_URL=http://localhost:8080`
 
 **Cloud sync 错误**
 

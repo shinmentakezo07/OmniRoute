@@ -23,6 +23,11 @@ import {
   Pie,
   AreaChart,
   Area,
+  Legend,
+  CartesianGrid,
+  RadialBarChart,
+  RadialBar,
+  LineChart,
 } from "recharts";
 
 // ── Custom Tooltip for dark theme ──────────────────────────────────────────
@@ -40,12 +45,12 @@ function DarkTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
+    <div className="rounded-2xl border border-white/20 bg-gradient-to-br from-surface/98 to-surface/95 backdrop-blur-xl px-5 py-3.5 text-xs shadow-2xl ring-1 ring-white/10">
       {label && <div className="font-semibold text-text-main mb-1">{label}</div>}
       {payload.map((entry, i) => (
         <div key={i} className="flex items-center gap-1.5 text-text-muted">
           <span
-            className="w-2 h-2 rounded-full shrink-0"
+            className="w-3 h-3 rounded-full shrink-0 shadow-lg ring-2 ring-white/20"
             style={{ backgroundColor: entry.color }}
           />
           <span>{entry.name}:</span>
@@ -91,13 +96,13 @@ export function StatCard({
   color?: string;
 }) {
   return (
-    <Card className="px-4 py-3 flex flex-col gap-1">
-      <div className="flex items-center gap-2 text-text-muted text-xs uppercase font-semibold tracking-wider">
-        <span className="material-symbols-outlined text-[16px]">{icon}</span>
+    <Card className="px-4 py-4 flex flex-col gap-2 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border border-white/5">
+      <div className="flex items-center gap-2 text-text-muted text-[10px] uppercase font-bold tracking-widest">
+        <span className="material-symbols-outlined text-[18px] opacity-70">{icon}</span>
         {label}
       </div>
-      <span className={`text-2xl font-bold ${color}`}>{value}</span>
-      {subValue && <span className="text-xs text-text-muted">{subValue}</span>}
+      <span className={`text-3xl font-extrabold ${color} tracking-tight`}>{value}</span>
+      {subValue && <span className="text-xs text-text-muted font-medium">{subValue}</span>}
     </Card>
   );
 }
@@ -173,17 +178,20 @@ export function ActivityHeatmap({ activityMap }) {
   function getCellColor(value) {
     if (!value || value === 0) return "bg-white/[0.04]";
     const intensity = Math.min(value / (cells.maxVal || 1), 1);
-    if (intensity < 0.25) return "bg-primary/20";
-    if (intensity < 0.5) return "bg-primary/40";
-    if (intensity < 0.75) return "bg-primary/60";
-    return "bg-primary/90";
+    if (intensity < 0.25) return "bg-primary/30 hover:bg-primary/40";
+    if (intensity < 0.5) return "bg-primary/50 hover:bg-primary/60";
+    if (intensity < 0.75) return "bg-primary/70 hover:bg-primary/80";
+    return "bg-primary hover:bg-primary/90";
   }
 
   return (
-    <Card className="p-4 h-full">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Activity</h3>
-        <span className="text-xs text-text-muted">
+    <Card className="p-5 h-full border border-white/5 hover:shadow-xl transition-shadow duration-300">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-[20px]">calendar_month</span>
+          Activity Heatmap
+        </h3>
+        <span className="text-xs text-text-muted font-medium">
           {Object.keys(activityMap || {}).length} active days ·{" "}
           {fmt(Object.values(activityMap || {}).reduce((a: number, b: number) => a + b, 0))} tokens
           · 365 days
@@ -194,7 +202,7 @@ export function ActivityHeatmap({ activityMap }) {
         {monthLabels.map((m, i) => (
           <span
             key={i}
-            className="text-text-muted"
+            className="text-text-muted font-semibold"
             style={{
               position: "relative",
               left: `${m.weekIdx * 13}px`,
@@ -223,20 +231,20 @@ export function ActivityHeatmap({ activityMap }) {
               <div
                 key={di}
                 title={day ? `${day.date}: ${fmtFull(day.value)} tokens` : ""}
-                className={`w-[10px] h-[10px] rounded-[2px] ${day ? getCellColor(day.value) : "bg-transparent"}`}
+                className={`w-[10px] h-[10px] rounded-[2px] transition-all duration-200 cursor-default ${day ? getCellColor(day.value) : "bg-transparent"}`}
               />
             ))}
           </div>
         ))}
       </div>
 
-      <div className="flex items-center gap-1 mt-2 ml-6 text-[10px] text-text-muted">
+      <div className="flex items-center gap-1.5 mt-3 ml-6 text-[10px] text-text-muted font-medium">
         <span>Less</span>
         <div className="w-[10px] h-[10px] rounded-[2px] bg-white/[0.04]" />
-        <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/20" />
-        <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/40" />
-        <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/60" />
-        <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/90" />
+        <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/30" />
+        <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/50" />
+        <div className="w-[10px] h-[10px] rounded-[2px] bg-primary/70" />
+        <div className="w-[10px] h-[10px] rounded-[2px] bg-primary" />
         <span>More</span>
       </div>
     </Card>
@@ -259,8 +267,8 @@ export function DailyTrendChart({ dailyTrend }) {
 
   if (!chartData.length) {
     return (
-      <Card className="p-4">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+      <Card className="p-5 border border-white/5">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-3">
           Token Trend
         </h3>
         <div className="text-center text-text-muted text-sm py-8">No data</div>
@@ -269,18 +277,30 @@ export function DailyTrendChart({ dailyTrend }) {
   }
 
   return (
-    <Card className="p-4 flex-1">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+    <Card className="p-6 flex-1 border border-white/10 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-primary/5 via-transparent to-emerald-500/5">
+      <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[20px]">trending_up</span>
         Token &amp; Cost Trend
       </h3>
-      <ResponsiveContainer width="100%" height={140}>
+      <ResponsiveContainer width="100%" height={220}>
         <ComposedChart
           data={chartData}
-          margin={{ top: 0, right: hasCost ? 40 : 0, left: 0, bottom: 0 }}
+          margin={{ top: 10, right: hasCost ? 40 : 10, left: 0, bottom: 0 }}
         >
+          <defs>
+            <linearGradient id="colorInput" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.8}/>
+              <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.3}/>
+            </linearGradient>
+            <linearGradient id="colorOutput" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+              <stop offset="95%" stopColor="#10b981" stopOpacity={0.3}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 9, fill: "var(--text-muted)" }}
+            tick={{ fontSize: 10, fill: "var(--text-muted)", fontWeight: 500 }}
             axisLine={false}
             tickLine={false}
             interval={Math.max(Math.floor(chartData.length / 6), 0)}
@@ -289,7 +309,7 @@ export function DailyTrendChart({ dailyTrend }) {
             <YAxis
               yAxisId="cost"
               orientation="right"
-              tick={{ fontSize: 8, fill: "#f59e0b" }}
+              tick={{ fontSize: 9, fill: "#f59e0b", fontWeight: 600 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v) => `$${v.toFixed(2)}`}
@@ -300,18 +320,20 @@ export function DailyTrendChart({ dailyTrend }) {
           <Bar
             dataKey="Input"
             stackId="a"
-            fill="var(--primary)"
-            opacity={0.7}
+            fill="url(#colorInput)"
+            opacity={0.8}
             radius={[0, 0, 0, 0]}
-            animationDuration={600}
+            animationDuration={800}
+            animationBegin={0}
           />
           <Bar
             dataKey="Output"
             stackId="a"
-            fill="#10b981"
-            opacity={0.7}
-            radius={[3, 3, 0, 0]}
-            animationDuration={600}
+            fill="url(#colorOutput)"
+            opacity={0.8}
+            radius={[6, 6, 0, 0]}
+            animationDuration={800}
+            animationBegin={200}
           />
           {hasCost && (
             <Line
@@ -319,23 +341,25 @@ export function DailyTrendChart({ dailyTrend }) {
               type="monotone"
               dataKey="Cost"
               stroke="#f59e0b"
-              strokeWidth={2}
-              dot={false}
-              animationDuration={600}
+              strokeWidth={3}
+              dot={{ fill: "#f59e0b", r: 4, strokeWidth: 2, stroke: "#fff" }}
+              activeDot={{ r: 6, strokeWidth: 2 }}
+              animationDuration={800}
+              animationBegin={400}
             />
           )}
         </ComposedChart>
       </ResponsiveContainer>
-      <div className="flex items-center gap-4 mt-2 text-[10px] text-text-muted">
+      <div className="flex items-center gap-4 mt-3 text-[11px] text-text-muted font-medium">
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-primary/70" /> Input
+          <span className="w-3 h-3 rounded-full bg-primary shadow-lg ring-2 ring-primary/30" /> Input
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-emerald-500/70" /> Output
+          <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-lg ring-2 ring-emerald-500/30" /> Output
         </span>
         {hasCost && (
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-amber-500/70" /> Cost ($)
+            <span className="w-3 h-3 rounded-full bg-amber-500 shadow-lg ring-2 ring-amber-500/30" /> Cost ($)
           </span>
         )}
       </div>
@@ -356,12 +380,12 @@ function CostTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-lg border border-white/10 bg-surface px-3 py-2 text-xs shadow-lg">
-      {label && <div className="font-semibold text-text-main mb-1">{label}</div>}
+    <div className="rounded-xl border border-white/10 bg-surface/95 backdrop-blur-sm px-4 py-3 text-xs shadow-2xl">
+      {label && <div className="font-bold text-text-main mb-2">{label}</div>}
       {payload.map((entry, i) => (
         <div key={i} className="flex items-center gap-1.5 text-text-muted">
           <span
-            className="w-2 h-2 rounded-full shrink-0"
+            className="w-3 h-3 rounded-full shrink-0 shadow-sm"
             style={{ backgroundColor: entry.color }}
           />
           <span>{entry.name}:</span>
@@ -390,8 +414,8 @@ export function AccountDonut({ byAccount }) {
 
   if (!hasData) {
     return (
-      <Card className="p-4 flex-1">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+      <Card className="p-5 flex-1 border border-white/5">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-3">
           By Account
         </h3>
         <div className="text-center text-text-muted text-sm py-8">No data</div>
@@ -400,42 +424,61 @@ export function AccountDonut({ byAccount }) {
   }
 
   return (
-    <Card className="p-4 flex-1">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+    <Card className="p-6 flex-1 border border-white/10 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5">
+      <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[20px]">account_circle</span>
         By Account
       </h3>
       <div className="flex items-center gap-4">
-        <ResponsiveContainer width={120} height={120}>
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-purple-500/20 rounded-full blur-2xl opacity-50"></div>
+          <ResponsiveContainer width={160} height={160}>
           <PieChart>
+            <defs>
+              {pieData.map((entry, i) => (
+                <linearGradient key={`gradient-${i}`} id={`accountGradient${i}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={entry.fill} stopOpacity={0.9}/>
+                  <stop offset="100%" stopColor={entry.fill} stopOpacity={0.6}/>
+                </linearGradient>
+              ))}
+            </defs>
             <Pie
               data={pieData}
               dataKey="value"
               nameKey="name"
               cx="50%"
               cy="50%"
-              innerRadius={28}
-              outerRadius={55}
-              paddingAngle={1}
-              animationDuration={600}
+              innerRadius={40}
+              outerRadius={75}
+              paddingAngle={3}
+              animationDuration={1000}
+              animationBegin={0}
             >
               {pieData.map((entry, i) => (
-                <Cell key={i} fill={entry.fill} stroke="none" />
+                <Cell 
+                  key={i} 
+                  fill={`url(#accountGradient${i})`}
+                  stroke="rgba(255,255,255,0.2)" 
+                  strokeWidth={2}
+                  className="hover:opacity-80 transition-opacity cursor-pointer"
+                />
               ))}
             </Pie>
             <Tooltip content={<DarkTooltip formatter={fmt} />} />
           </PieChart>
         </ResponsiveContainer>
+        </div>
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           {pieData.map((seg, i) => (
-            <div key={i} className="flex items-center justify-between gap-2 text-xs">
+            <div key={i} className="flex items-center justify-between gap-2 text-xs hover:bg-white/10 rounded-lg px-3 py-2 transition-all duration-300 cursor-pointer group">
               <div className="flex items-center gap-1.5 min-w-0">
                 <span
-                  className="w-2 h-2 rounded-full shrink-0"
+                  className="w-3 h-3 rounded-full shrink-0 shadow-lg ring-2 ring-white/20 group-hover:scale-125 transition-transform"
                   style={{ backgroundColor: seg.fill }}
                 />
-                <span className="truncate text-text-main">{seg.name}</span>
+                <span className="truncate text-text-main font-semibold group-hover:text-primary transition-colors">{seg.name}</span>
               </div>
-              <span className="font-mono font-medium text-text-muted shrink-0">
+              <span className="font-mono font-bold text-text-main shrink-0 group-hover:scale-110 transition-transform">
                 {fmt(seg.value)}
               </span>
             </div>
@@ -463,8 +506,8 @@ export function ApiKeyDonut({ byApiKey }) {
 
   if (!hasData) {
     return (
-      <Card className="p-4 flex-1">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+      <Card className="p-5 flex-1 border border-white/5">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-3">
           By API Key
         </h3>
         <div className="text-center text-text-muted text-sm py-8">No data</div>
@@ -473,47 +516,66 @@ export function ApiKeyDonut({ byApiKey }) {
   }
 
   return (
-    <Card className="p-4 flex-1">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+    <Card className="p-6 flex-1 border border-white/10 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-emerald-500/5 via-transparent to-cyan-500/5">
+      <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[20px]">vpn_key</span>
         By API Key
       </h3>
       <div className="flex items-center gap-4">
-        <ResponsiveContainer width={120} height={120}>
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-full blur-2xl opacity-50"></div>
+          <ResponsiveContainer width={160} height={160}>
           <PieChart>
+            <defs>
+              {pieData.map((entry, i) => (
+                <linearGradient key={`gradient-${i}`} id={`keyGradient${i}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={entry.fill} stopOpacity={0.9}/>
+                  <stop offset="100%" stopColor={entry.fill} stopOpacity={0.6}/>
+                </linearGradient>
+              ))}
+            </defs>
             <Pie
               data={pieData}
               dataKey="value"
               nameKey="name"
               cx="50%"
               cy="50%"
-              innerRadius={28}
-              outerRadius={55}
-              paddingAngle={1}
-              animationDuration={600}
+              innerRadius={40}
+              outerRadius={75}
+              paddingAngle={3}
+              animationDuration={1000}
+              animationBegin={0}
             >
               {pieData.map((entry, i) => (
-                <Cell key={i} fill={entry.fill} stroke="none" />
+                <Cell 
+                  key={i} 
+                  fill={`url(#keyGradient${i})`}
+                  stroke="rgba(255,255,255,0.2)" 
+                  strokeWidth={2}
+                  className="hover:opacity-80 transition-opacity cursor-pointer"
+                />
               ))}
             </Pie>
             <Tooltip content={<DarkTooltip formatter={fmt} />} />
           </PieChart>
         </ResponsiveContainer>
+        </div>
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           {pieData.map((seg, i) => (
             <div
               key={`${seg.fullName}-${i}`}
-              className="flex items-center justify-between gap-2 text-xs"
+              className="flex items-center justify-between gap-2 text-xs hover:bg-white/10 rounded-lg px-3 py-2 transition-all duration-300 cursor-pointer group"
             >
               <div className="flex items-center gap-1.5 min-w-0">
                 <span
-                  className="w-2 h-2 rounded-full shrink-0"
+                  className="w-3 h-3 rounded-full shrink-0 shadow-lg ring-2 ring-white/20 group-hover:scale-125 transition-transform"
                   style={{ backgroundColor: seg.fill }}
                 />
-                <span className="truncate text-text-main" title={seg.fullName}>
+                <span className="truncate text-text-main font-semibold group-hover:text-primary transition-colors" title={seg.fullName}>
                   {seg.name}
                 </span>
               </div>
-              <span className="font-mono font-medium text-text-muted shrink-0">
+              <span className="font-mono font-bold text-text-main shrink-0 group-hover:scale-110 transition-transform">
                 {fmt(seg.value)}
               </span>
             </div>
@@ -572,8 +634,8 @@ export function ApiKeyTable({ byApiKey }) {
 
   if (!hasData) {
     return (
-      <Card className="p-4 flex-1">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+      <Card className="p-5 flex-1 border border-white/5">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-3">
           API Key Breakdown
         </h3>
         <div className="text-center text-text-muted text-sm py-8">No data</div>
@@ -582,9 +644,10 @@ export function ApiKeyTable({ byApiKey }) {
   }
 
   return (
-    <Card className="overflow-hidden">
-      <div className="p-4 border-b border-border flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">
+    <Card className="overflow-hidden border border-white/5 hover:shadow-xl transition-shadow duration-300">
+      <div className="p-5 border-b border-border flex items-center justify-between gap-3 bg-gradient-to-r from-primary/5 to-transparent">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-[20px]">vpn_key</span>
           API Key Breakdown
         </h3>
         <input
@@ -592,47 +655,47 @@ export function ApiKeyTable({ byApiKey }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Filter API key..."
-          className="w-full max-w-[220px] px-3 py-1.5 rounded-lg bg-bg-subtle border border-border text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary"
+          className="w-full max-w-[220px] px-3 py-2 rounded-lg bg-bg-subtle border border-border text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
         />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-xs text-text-muted uppercase bg-black/[0.02] dark:bg-white/[0.02]">
+          <thead className="text-xs text-text-muted uppercase bg-black/[0.03] dark:bg-white/[0.03] font-bold">
             <tr>
               <th
-                className="px-4 py-2.5 text-left cursor-pointer group"
+                className="px-4 py-3 text-left cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("apiKeyName")}
               >
                 API Key <SortIndicator active={sortBy === "apiKeyName"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("requests")}
               >
                 Requests <SortIndicator active={sortBy === "requests"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("promptTokens")}
               >
                 Input <SortIndicator active={sortBy === "promptTokens"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("completionTokens")}
               >
                 Output{" "}
                 <SortIndicator active={sortBy === "completionTokens"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("totalTokens")}
               >
                 Total Tokens{" "}
                 <SortIndicator active={sortBy === "totalTokens"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("cost")}
               >
                 Cost <SortIndicator active={sortBy === "cost"} sortOrder={sortOrder} />
@@ -643,33 +706,33 @@ export function ApiKeyTable({ byApiKey }) {
             {sorted.map((row, i) => (
               <tr
                 key={`${row.apiKeyId || row.apiKeyName || "key"}-${i}`}
-                className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                className="hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
               >
-                <td className="px-4 py-2.5">
-                  <span className="font-medium" title={row.apiKeyName || row.apiKeyId || "unknown"}>
+                <td className="px-4 py-3">
+                  <span className="font-semibold text-text-main" title={row.apiKeyName || row.apiKeyId || "unknown"}>
                     {maskApiKeyLabel(row.apiKeyName, row.apiKeyId)}
                   </span>
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-text-muted">
+                <td className="px-4 py-3 text-right font-mono text-text-muted font-medium">
                   {fmtFull(row.requests)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-primary">
+                <td className="px-4 py-3 text-right font-mono text-primary font-semibold">
                   {fmt(row.promptTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-emerald-500">
+                <td className="px-4 py-3 text-right font-mono text-emerald-500 font-semibold">
                   {fmt(row.completionTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono font-semibold">
+                <td className="px-4 py-3 text-right font-mono font-bold text-text-main">
                   {fmt(row.totalTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-amber-500">
+                <td className="px-4 py-3 text-right font-mono text-amber-500 font-semibold">
                   {fmtCost(row.cost)}
                 </td>
               </tr>
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-text-muted">
+                <td colSpan={6} className="px-4 py-10 text-center text-text-muted font-medium">
                   No API key matches this filter.
                 </td>
               </tr>
@@ -692,15 +755,16 @@ export function WeeklyPattern({ weeklyPattern }) {
   }, [weeklyPattern]);
 
   return (
-    <Card className="px-4 py-3">
-      <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
+    <Card className="px-5 py-4 border border-white/5 hover:shadow-xl transition-shadow duration-300">
+      <h3 className="text-xs font-bold text-text-main uppercase tracking-widest mb-3 flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[18px]">calendar_view_week</span>
         Weekly
       </h3>
-      <ResponsiveContainer width="100%" height={48}>
+      <ResponsiveContainer width="100%" height={60}>
         <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
           <XAxis
             dataKey="day"
-            tick={{ fontSize: 9, fill: "var(--text-muted)" }}
+            tick={{ fontSize: 10, fill: "var(--text-muted)", fontWeight: 600 }}
             axisLine={false}
             tickLine={false}
           />
@@ -710,9 +774,9 @@ export function WeeklyPattern({ weeklyPattern }) {
           />
           <Bar
             dataKey="Tokens"
-            fill="var(--text-muted)"
-            opacity={0.3}
-            radius={[3, 3, 0, 0]}
+            fill="var(--primary)"
+            opacity={0.7}
+            radius={[4, 4, 0, 0]}
             animationDuration={400}
           />
         </BarChart>
@@ -766,24 +830,22 @@ export function MostActiveDay7d({ activityMap }) {
   }, [activityMap]);
 
   return (
-    <Card className="p-4 flex flex-col justify-center" style={{ flex: 1, minHeight: 0 }}>
-      <h3
-        className="text-xs font-semibold uppercase tracking-wider mb-2"
-        style={{ color: "var(--text-muted)" }}
-      >
+    <Card className="p-5 flex flex-col justify-center border border-white/5 hover:shadow-xl transition-shadow duration-300" style={{ flex: 1, minHeight: 0 }}>
+      <h3 className="text-xs font-bold uppercase tracking-widest mb-3 text-text-main flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[18px]">star</span>
         Most Active Day
       </h3>
       {data ? (
         <>
-          <span className="text-xl font-bold capitalize" style={{ lineHeight: 1.2 }}>
+          <span className="text-2xl font-extrabold capitalize text-primary" style={{ lineHeight: 1.2 }}>
             {data.weekday}
           </span>
-          <span className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+          <span className="text-xs mt-2 font-medium" style={{ color: "var(--text-muted)" }}>
             {data.label} · {fmt(data.tokens)} tokens
           </span>
         </>
       ) : (
-        <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+        <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
           Sem dados nos últimos 7 dias
         </span>
       )}
@@ -819,11 +881,9 @@ export function WeeklySquares7d({ activityMap }) {
   }
 
   return (
-    <Card className="p-4 flex flex-col justify-center" style={{ flex: 1, minHeight: 0 }}>
-      <h3
-        className="text-xs font-semibold uppercase tracking-wider mb-3"
-        style={{ color: "var(--text-muted)" }}
-      >
+    <Card className="p-5 flex flex-col justify-center border border-white/5 hover:shadow-xl transition-shadow duration-300" style={{ flex: 1, minHeight: 0 }}>
+      <h3 className="text-xs font-bold uppercase tracking-widest mb-3 text-text-main flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[18px]">view_week</span>
         Weekly
       </h3>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 6, justifyContent: "center" }}>
@@ -835,20 +895,22 @@ export function WeeklySquares7d({ activityMap }) {
             <div
               title={`${d.key}: ${fmtFull(d.val)} tokens`}
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 8,
+                width: 40,
+                height: 40,
+                borderRadius: 10,
                 ...getSquareStyle(d.intensity),
-                transition: "all 0.2s",
+                transition: "all 0.3s",
                 cursor: "default",
+                boxShadow: d.intensity > 0 ? "0 2px 8px rgba(229, 77, 94, 0.2)" : "none",
               }}
+              className="hover:scale-110"
             />
             <span
               style={{
-                fontSize: 9,
-                fontWeight: 600,
+                fontSize: 10,
+                fontWeight: 700,
                 color: "var(--text-muted)",
-                letterSpacing: "0.03em",
+                letterSpacing: "0.05em",
               }}
             >
               {d.label}
@@ -891,95 +953,96 @@ export function ModelTable({ byModel, summary }) {
   }, [byModel, sortBy, sortOrder]);
 
   return (
-    <Card className="overflow-hidden">
-      <div className="p-4 border-b border-border">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">
+    <Card className="overflow-hidden border border-white/5 hover:shadow-xl transition-shadow duration-300">
+      <div className="p-5 border-b border-border bg-gradient-to-r from-primary/5 to-transparent">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-[20px]">model_training</span>
           Model Breakdown
         </h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-xs text-text-muted uppercase bg-black/[0.02] dark:bg-white/[0.02]">
+          <thead className="text-xs text-text-muted uppercase bg-black/[0.03] dark:bg-white/[0.03] font-bold">
             <tr>
               <th
-                className="px-4 py-2.5 text-left cursor-pointer group"
+                className="px-4 py-3 text-left cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("model")}
               >
                 Model <SortIndicator active={sortBy === "model"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("requests")}
               >
                 Requests <SortIndicator active={sortBy === "requests"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("promptTokens")}
               >
                 Input <SortIndicator active={sortBy === "promptTokens"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("completionTokens")}
               >
                 Output{" "}
                 <SortIndicator active={sortBy === "completionTokens"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("totalTokens")}
               >
                 Total <SortIndicator active={sortBy === "totalTokens"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("cost")}
               >
                 Cost <SortIndicator active={sortBy === "cost"} sortOrder={sortOrder} />
               </th>
-              <th className="px-4 py-2.5 text-right w-36">Share</th>
+              <th className="px-4 py-3 text-right w-36">Share</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {sorted.map((m, i) => (
               <tr
                 key={m.model}
-                className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                className="hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
               >
-                <td className="px-4 py-2.5">
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <span
-                      className="w-2 h-2 rounded-full shrink-0"
+                      className="w-3 h-3 rounded-full shrink-0 shadow-sm"
                       style={{ backgroundColor: getModelColor(i) }}
                     />
-                    <span className="font-medium">{m.model}</span>
+                    <span className="font-semibold text-text-main">{m.model}</span>
                   </div>
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-text-muted">
+                <td className="px-4 py-3 text-right font-mono text-text-muted font-medium">
                   {fmtFull(m.requests)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-primary">
+                <td className="px-4 py-3 text-right font-mono text-primary font-semibold">
                   {fmt(m.promptTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-emerald-500">
+                <td className="px-4 py-3 text-right font-mono text-emerald-500 font-semibold">
                   {fmt(m.completionTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono font-semibold">
+                <td className="px-4 py-3 text-right font-mono font-bold text-text-main">
                   {fmt(m.totalTokens)}
                 </td>
-                <td className="px-4 py-2.5 text-right font-mono text-amber-500">
+                <td className="px-4 py-3 text-right font-mono text-amber-500 font-semibold">
                   {fmtCost(m.cost)}
                 </td>
-                <td className="px-4 py-2.5 text-right">
+                <td className="px-4 py-3 text-right">
                   <div className="flex items-center gap-2 justify-end">
-                    <div className="w-16 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                    <div className="w-16 h-2 rounded-full bg-white/[0.06] overflow-hidden shadow-inner">
                       <div
-                        className="h-full rounded-full transition-all"
+                        className="h-full rounded-full transition-all shadow-sm"
                         style={{ width: `${m.pct}%`, backgroundColor: getModelColor(i) }}
                       />
                     </div>
-                    <span className="text-xs font-mono text-text-muted w-10 text-right">
+                    <span className="text-xs font-mono text-text-main font-semibold w-10 text-right">
                       {m.pct}%
                     </span>
                   </div>
@@ -1003,15 +1066,16 @@ export function UsageDetail({ summary }) {
   ];
 
   return (
-    <Card className="p-4 flex-1">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+    <Card className="p-5 flex-1 border border-white/5 hover:shadow-xl transition-shadow duration-300">
+      <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[20px]">info</span>
         Usage Detail
       </h3>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         {items.map((item, i) => (
-          <div key={i} className="flex items-center justify-between">
-            <span className={`text-sm ${item.color}`}>{item.label}</span>
-            <span className="font-mono font-medium text-sm">{fmtFull(item.value)}</span>
+          <div key={i} className="flex items-center justify-between hover:bg-white/5 rounded-md px-2 py-1.5 transition-colors">
+            <span className={`text-sm font-semibold ${item.color}`}>{item.label}</span>
+            <span className="font-mono font-bold text-sm text-text-main">{fmtFull(item.value)}</span>
           </div>
         ))}
       </div>
@@ -1052,8 +1116,8 @@ export function ProviderCostDonut({ byProvider }) {
 
   if (!hasData) {
     return (
-      <Card className="p-4 flex-1">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+      <Card className="p-5 flex-1 border border-white/5">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-3">
           Cost by Provider
         </h3>
         <div className="text-center text-text-muted text-sm py-8">No cost data</div>
@@ -1062,42 +1126,61 @@ export function ProviderCostDonut({ byProvider }) {
   }
 
   return (
-    <Card className="p-4 flex-1">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+    <Card className="p-6 flex-1 border border-white/10 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5">
+      <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[20px]">payments</span>
         Cost by Provider
       </h3>
       <div className="flex items-center gap-4">
-        <ResponsiveContainer width={120} height={120}>
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-full blur-2xl opacity-50"></div>
+          <ResponsiveContainer width={160} height={160}>
           <PieChart>
+            <defs>
+              {pieData.map((entry, i) => (
+                <linearGradient key={`gradient-${i}`} id={`providerGradient${i}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={entry.fill} stopOpacity={0.9}/>
+                  <stop offset="100%" stopColor={entry.fill} stopOpacity={0.6}/>
+                </linearGradient>
+              ))}
+            </defs>
             <Pie
               data={pieData}
               dataKey="value"
               nameKey="name"
               cx="50%"
               cy="50%"
-              innerRadius={28}
-              outerRadius={55}
-              paddingAngle={1}
-              animationDuration={600}
+              innerRadius={40}
+              outerRadius={75}
+              paddingAngle={3}
+              animationDuration={1000}
+              animationBegin={0}
             >
               {pieData.map((entry, i) => (
-                <Cell key={i} fill={entry.fill} stroke="none" />
+                <Cell 
+                  key={i} 
+                  fill={`url(#providerGradient${i})`}
+                  stroke="rgba(255,255,255,0.2)" 
+                  strokeWidth={2}
+                  className="hover:opacity-80 transition-opacity cursor-pointer"
+                />
               ))}
             </Pie>
             <Tooltip content={<DarkTooltip formatter={fmtCost} />} />
           </PieChart>
         </ResponsiveContainer>
+        </div>
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           {pieData.map((seg, i) => (
-            <div key={i} className="flex items-center justify-between gap-2 text-xs">
+            <div key={i} className="flex items-center justify-between gap-2 text-xs hover:bg-white/10 rounded-lg px-3 py-2 transition-all duration-300 cursor-pointer group">
               <div className="flex items-center gap-1.5 min-w-0">
                 <span
-                  className="w-2 h-2 rounded-full shrink-0"
+                  className="w-3 h-3 rounded-full shrink-0 shadow-lg ring-2 ring-white/20 group-hover:scale-125 transition-transform"
                   style={{ backgroundColor: seg.fill }}
                 />
-                <span className="truncate text-text-main capitalize">{seg.name}</span>
+                <span className="truncate text-text-main capitalize font-semibold group-hover:text-amber-500 transition-colors">{seg.name}</span>
               </div>
-              <span className="font-mono font-medium text-amber-500 shrink-0">
+              <span className="font-mono font-bold text-amber-500 shrink-0 group-hover:scale-110 transition-transform">
                 {fmtCost(seg.value)}
               </span>
             </div>
@@ -1129,8 +1212,8 @@ export function ModelOverTimeChart({ dailyByModel, modelNames }) {
 
   if (!data.length || !models.length) {
     return (
-      <Card className="p-4">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+      <Card className="p-5 border border-white/5">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-3">
           Model Usage Over Time
         </h3>
         <div className="text-center text-text-muted text-sm py-8">No data</div>
@@ -1139,21 +1222,31 @@ export function ModelOverTimeChart({ dailyByModel, modelNames }) {
   }
 
   return (
-    <Card className="p-4">
-      <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+    <Card className="p-6 border border-white/10 hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5">
+      <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-4 flex items-center gap-2">
+        <span className="material-symbols-outlined text-primary text-[20px]">show_chart</span>
         Model Usage Over Time
       </h3>
-      <ResponsiveContainer width="100%" height={240}>
-        <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+      <ResponsiveContainer width="100%" height={320}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <defs>
+            {models.map((m, i) => (
+              <linearGradient key={`gradient-${i}`} id={`modelGradient${i}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={getModelColor(i)} stopOpacity={0.8}/>
+                <stop offset="95%" stopColor={getModelColor(i)} stopOpacity={0.1}/>
+              </linearGradient>
+            ))}
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
           <XAxis
             dataKey="dateLabel"
-            tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+            tick={{ fontSize: 10, fill: "var(--text-muted)", fontWeight: 500 }}
             axisLine={false}
             tickLine={false}
             interval="preserveStartEnd"
           />
           <YAxis
-            tick={{ fontSize: 10, fill: "var(--text-muted)" }}
+            tick={{ fontSize: 10, fill: "var(--text-muted)", fontWeight: 500 }}
             tickFormatter={(v) => fmt(v)}
             axisLine={false}
             tickLine={false}
@@ -1167,22 +1260,22 @@ export function ModelOverTimeChart({ dailyByModel, modelNames }) {
               dataKey={m}
               stackId="1"
               stroke={getModelColor(i)}
-              fill={getModelColor(i)}
-              fillOpacity={0.4}
-              strokeWidth={1.5}
-              animationDuration={600}
+              fill={`url(#modelGradient${i})`}
+              strokeWidth={2.5}
+              animationDuration={1000}
+              animationBegin={i * 100}
             />
           ))}
         </AreaChart>
       </ResponsiveContainer>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[10px] text-text-muted">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 text-[11px] text-text-muted font-medium">
         {models.map((m, i) => (
-          <span key={m} className="flex items-center gap-1">
+          <span key={m} className="flex items-center gap-1.5 hover:scale-110 transition-transform cursor-pointer">
             <span
-              className="w-2 h-2 rounded-full shrink-0"
+              className="w-3 h-3 rounded-full shrink-0 shadow-lg ring-2 ring-white/20"
               style={{ backgroundColor: getModelColor(i) }}
             />
-            {m}
+            <span className="font-semibold">{m}</span>
           </span>
         ))}
       </div>
@@ -1225,8 +1318,8 @@ export function ProviderTable({ byProvider }) {
 
   if (!data.length) {
     return (
-      <Card className="p-4">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+      <Card className="p-5 border border-white/5">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest mb-3">
           Provider Breakdown
         </h3>
         <div className="text-center text-text-muted text-sm py-8">No data</div>
@@ -1235,54 +1328,55 @@ export function ProviderTable({ byProvider }) {
   }
 
   return (
-    <Card className="overflow-hidden">
-      <div className="p-4 border-b border-border">
-        <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">
+    <Card className="overflow-hidden border border-white/5 hover:shadow-xl transition-shadow duration-300">
+      <div className="p-5 border-b border-border bg-gradient-to-r from-primary/5 to-transparent">
+        <h3 className="text-sm font-bold text-text-main uppercase tracking-widest flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-[20px]">cloud</span>
           Provider Breakdown
         </h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-xs text-text-muted uppercase bg-black/[0.02] dark:bg-white/[0.02]">
+          <thead className="text-xs text-text-muted uppercase bg-black/[0.03] dark:bg-white/[0.03] font-bold">
             <tr>
               <th
-                className="px-4 py-2.5 text-left cursor-pointer group"
+                className="px-4 py-3 text-left cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("provider")}
               >
                 Provider <SortIndicator active={sortBy === "provider"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("requests")}
               >
                 Requests <SortIndicator active={sortBy === "requests"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("promptTokens")}
               >
                 Input <SortIndicator active={sortBy === "promptTokens"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("completionTokens")}
               >
                 Output{" "}
                 <SortIndicator active={sortBy === "completionTokens"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("totalTokens")}
               >
                 Total <SortIndicator active={sortBy === "totalTokens"} sortOrder={sortOrder} />
               </th>
               <th
-                className="px-4 py-2.5 text-right cursor-pointer group"
+                className="px-4 py-3 text-right cursor-pointer group hover:bg-white/5 transition-colors"
                 onClick={() => toggleSort("cost")}
               >
                 Cost <SortIndicator active={sortBy === "cost"} sortOrder={sortOrder} />
               </th>
-              <th className="px-4 py-2.5 text-right w-36">Share</th>
+              <th className="px-4 py-3 text-right w-36">Share</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -1291,44 +1385,44 @@ export function ProviderTable({ byProvider }) {
               return (
                 <tr
                   key={p.provider}
-                  className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors"
+                  className="hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
                 >
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span
-                        className="w-2 h-2 rounded-full shrink-0"
+                        className="w-3 h-3 rounded-full shrink-0 shadow-sm"
                         style={{ backgroundColor: PROVIDER_COLORS[i % PROVIDER_COLORS.length] }}
                       />
-                      <span className="font-medium capitalize">{p.provider}</span>
+                      <span className="font-semibold capitalize text-text-main">{p.provider}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-text-muted">
+                  <td className="px-4 py-3 text-right font-mono text-text-muted font-medium">
                     {fmtFull(p.requests)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-primary">
+                  <td className="px-4 py-3 text-right font-mono text-primary font-semibold">
                     {fmt(p.promptTokens)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-emerald-500">
+                  <td className="px-4 py-3 text-right font-mono text-emerald-500 font-semibold">
                     {fmt(p.completionTokens)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono font-semibold">
+                  <td className="px-4 py-3 text-right font-mono font-bold text-text-main">
                     {fmt(p.totalTokens)}
                   </td>
-                  <td className="px-4 py-2.5 text-right font-mono text-amber-500">
+                  <td className="px-4 py-3 text-right font-mono text-amber-500 font-semibold">
                     {fmtCost(p.cost)}
                   </td>
-                  <td className="px-4 py-2.5 text-right">
+                  <td className="px-4 py-3 text-right">
                     <div className="flex items-center gap-2 justify-end">
-                      <div className="w-16 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                      <div className="w-16 h-2 rounded-full bg-white/[0.06] overflow-hidden shadow-inner">
                         <div
-                          className="h-full rounded-full transition-all"
+                          className="h-full rounded-full transition-all shadow-sm"
                           style={{
                             width: `${pct}%`,
                             backgroundColor: PROVIDER_COLORS[i % PROVIDER_COLORS.length],
                           }}
                         />
                       </div>
-                      <span className="text-xs font-mono text-text-muted w-10 text-right">
+                      <span className="text-xs font-mono text-text-main font-semibold w-10 text-right">
                         {pct}%
                       </span>
                     </div>

@@ -22,11 +22,11 @@ services:
     env_file: .env
     environment:
       - NODE_ENV=production
-      - PORT=20128
+      - PORT=8080
       - HOSTNAME=0.0.0.0
       - DATA_DIR=/app/data
     ports:
-      - "20130:20128"
+      - "20130:8080"
     volumes:
       - omniroute-prod-data:/app/data
     healthcheck:
@@ -35,7 +35,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:20128/api/settings').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:8080/api/settings').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))",
         ]
       interval: 30s
       timeout: 5s

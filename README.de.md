@@ -92,7 +92,7 @@ _Verbinde jedes KI-gesteuerte IDE- oder CLI-Tool über OmniRoute — kostenloses
     </tr>
   </table>
 
-<sub>📡 Alle Agenten verbinden sich über <code>http://localhost:20128/v1</code> oder <code>http://cloud.omniroute.online/v1</code> — eine Konfiguration, unbegrenzte Modelle und Kontingent</sub>
+<sub>📡 Alle Agenten verbinden sich über <code>http://localhost:8080/v1</code> oder <code>http://cloud.omniroute.online/v1</code> — eine Konfiguration, unbegrenzte Modelle und Kontingent</sub>
 
 ---
 
@@ -135,7 +135,7 @@ _Verbinde jedes KI-gesteuerte IDE- oder CLI-Tool über OmniRoute — kostenloses
 │  Dein CLI   │  (Claude Code, Codex, Gemini CLI, OpenClaw, Cursor, Cline...)
 │   Tool      │
 └──────┬──────┘
-       │ http://localhost:20128/v1
+       │ http://localhost:8080/v1
        ↓
 ┌─────────────────────────────────────────┐
 │         OmniRoute (Smart Router)         │
@@ -166,11 +166,11 @@ npm install -g omniroute
 omniroute
 ```
 
-🎉 Das Dashboard öffnet sich unter `http://localhost:20128`
+🎉 Das Dashboard öffnet sich unter `http://localhost:8080`
 
 | Befehl                  | Beschreibung                        |
 | ----------------------- | ----------------------------------- |
-| `omniroute`             | Server starten (Standardport 20128) |
+| `omniroute`             | Server starten (Standardport 8080) |
 | `omniroute --port 3000` | Benutzerdefinierten Port verwenden  |
 | `omniroute --no-open`   | Browser nicht automatisch öffnen    |
 | `omniroute --help`      | Hilfe anzeigen                      |
@@ -183,7 +183,7 @@ Dashboard → Anbieter → **Claude Code** oder **Antigravity** verbinden → OA
 
 ```
 Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline Einstellungen:
-  Endpoint: http://localhost:20128/v1
+  Endpoint: http://localhost:8080/v1
   API Key: [vom Dashboard kopieren]
   Model: if/kimi-k2-thinking
 ```
@@ -195,7 +195,7 @@ Claude Code/Codex/Gemini CLI/OpenClaw/Cursor/Cline Einstellungen:
 ```bash
 cp .env.example .env
 npm install
-PORT=20128 NEXT_PUBLIC_BASE_URL=http://localhost:20128 npm run dev
+PORT=8080 NEXT_PUBLIC_BASE_URL=http://localhost:8080 npm run dev
 ```
 
 ---
@@ -210,7 +210,7 @@ OmniRoute ist als öffentliches Docker-Image auf [Docker Hub](https://hub.docker
 docker run -d \
   --name omniroute \
   --restart unless-stopped \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -225,7 +225,7 @@ docker run -d \
   --name omniroute \
   --restart unless-stopped \
   --env-file .env \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -696,7 +696,7 @@ Kosten: Für immer $0!
 
 ```
 Einstellungen → Modelle → Erweitert:
-  OpenAI API Base URL: http://localhost:20128/v1
+  OpenAI API Base URL: http://localhost:8080/v1
   OpenAI API Key: [aus OmniRoute Dashboard]
   Model: cc/claude-opus-4-6
 ```
@@ -708,7 +708,7 @@ Nutze die **CLI Tools** Seite im Dashboard für Ein-Klick-Konfiguration, oder be
 ### Codex CLI
 
 ```bash
-export OPENAI_BASE_URL="http://localhost:20128"
+export OPENAI_BASE_URL="http://localhost:8080"
 export OPENAI_API_KEY="your-omniroute-api-key"
 
 codex "your prompt"
@@ -729,7 +729,7 @@ Dashboard → CLI Tools → OpenClaw → Modell wählen → Anwenden
   "models": {
     "providers": {
       "omniroute": {
-        "baseUrl": "http://127.0.0.1:20128/v1",
+        "baseUrl": "http://127.0.0.1:8080/v1",
         "apiKey": "sk_omniroute",
         "api": "openai-completions"
       }
@@ -745,7 +745,7 @@ Dashboard → CLI Tools → OpenClaw → Modell wählen → Anwenden
 ```
 Einstellungen → API-Konfiguration:
   Anbieter: OpenAI Compatible
-  Base URL: http://localhost:20128/v1
+  Base URL: http://localhost:8080/v1
   API Key: [aus OmniRoute Dashboard]
   Model: if/kimi-k2-thinking
 ```
@@ -873,7 +873,7 @@ Das vorgeladene „OmniRoute Golden Set" enthält 10 Testfälle:
 
 **Dashboard öffnet sich auf falschem Port**
 
-- `PORT=20128` und `NEXT_PUBLIC_BASE_URL=http://localhost:20128` setzen
+- `PORT=8080` und `NEXT_PUBLIC_BASE_URL=http://localhost:8080` setzen
 
 **Cloud-Sync-Fehler**
 

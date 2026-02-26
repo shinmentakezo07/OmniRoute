@@ -9,7 +9,7 @@ Common problems and solutions for OmniRoute.
 | Problem                       | Solution                                                           |
 | ----------------------------- | ------------------------------------------------------------------ |
 | First login not working       | Check `INITIAL_PASSWORD` in `.env` (default: `123456`)             |
-| Dashboard opens on wrong port | Set `PORT=20128` and `NEXT_PUBLIC_BASE_URL=http://localhost:20128` |
+| Dashboard opens on wrong port | Set `PORT=8080` and `NEXT_PUBLIC_BASE_URL=http://localhost:8080` |
 | No request logs under `logs/` | Set `ENABLE_REQUEST_LOGS=true`                                     |
 
 ---
@@ -48,7 +48,7 @@ OmniRoute auto-refreshes tokens. If issues persist:
 
 ### Cloud Sync Errors
 
-1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:20128`)
+1. Verify `BASE_URL` points to your running instance (e.g., `http://localhost:8080`)
 2. Verify `CLOUD_URL` points to your cloud endpoint (e.g., `https://omniroute.dev`)
 3. Keep `NEXT_PUBLIC_*` values aligned with server-side values
 
@@ -72,7 +72,7 @@ OmniRoute auto-refreshes tokens. If issues persist:
 
 ### CLI Tool Shows Not Installed
 
-1. Check runtime fields: `curl http://localhost:20128/api/cli-tools/runtime/codex | jq`
+1. Check runtime fields: `curl http://localhost:8080/api/cli-tools/runtime/codex | jq`
 2. For portable mode: use image target `runner-cli` (bundled CLIs)
 3. For host mount mode: set `CLI_EXTRA_PATHS` and mount host bin directory as read-only
 4. If `installed=true` and `runnable=false`: binary was found but failed healthcheck
@@ -80,9 +80,9 @@ OmniRoute auto-refreshes tokens. If issues persist:
 ### Quick Runtime Validation
 
 ```bash
-curl -s http://localhost:20128/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
-curl -s http://localhost:20128/api/cli-tools/claude-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
-curl -s http://localhost:20128/api/cli-tools/openclaw-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:8080/api/cli-tools/codex-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:8080/api/cli-tools/claude-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
+curl -s http://localhost:8080/api/cli-tools/openclaw-settings | jq '{installed,runnable,commandPath,runtimeMode,reason}'
 ```
 
 ---
@@ -108,10 +108,10 @@ Set `ENABLE_REQUEST_LOGS=true` in your `.env` file. Logs appear under `logs/` di
 
 ```bash
 # Health dashboard
-http://localhost:20128/dashboard/health
+http://localhost:8080/dashboard/health
 
 # API health check
-curl http://localhost:20128/api/monitoring/health
+curl http://localhost:8080/api/monitoring/health
 ```
 
 ### Runtime Storage

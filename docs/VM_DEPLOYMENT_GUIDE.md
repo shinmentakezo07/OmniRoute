@@ -99,7 +99,7 @@ STORAGE_ENCRYPTION_KEY_VERSION=v1
 MACHINE_ID_SALT=ALTERE-PARA-SALT-UNICO
 
 # === App ===
-PORT=20128
+PORT=8080
 NODE_ENV=production
 HOSTNAME=0.0.0.0
 DATA_DIR=/app/data
@@ -129,7 +129,7 @@ docker run -d \
   --name omniroute \
   --restart unless-stopped \
   --env-file /opt/omniroute/.env \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -141,7 +141,7 @@ docker ps | grep omniroute
 docker logs omniroute --tail 20
 ```
 
-Deve exibir: `[DB] SQLite database ready` e `listening on port 20128`.
+Deve exibir: `[DB] SQLite database ready` e `listening on port 8080`.
 
 ---
 
@@ -197,7 +197,7 @@ server {
     client_max_body_size 100M;
 
     location / {
-        proxy_pass http://127.0.0.1:20128;
+        proxy_pass http://127.0.0.1:8080;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -281,7 +281,7 @@ docker pull diegosouzapw/omniroute:latest
 docker stop omniroute && docker rm omniroute
 docker run -d --name omniroute --restart unless-stopped \
   --env-file /opt/omniroute/.env \
-  -p 20128:20128 \
+  -p 8080:8080 \
   -v omniroute-data:/app/data \
   diegosouzapw/omniroute:latest
 ```
@@ -362,9 +362,9 @@ fail2ban-client status sshd
 ### Bloquear acesso direto na porta do Docker
 
 ```bash
-# Impedir acesso externo direto à porta 20128
-iptables -I DOCKER-USER -p tcp --dport 20128 -j DROP
-iptables -I DOCKER-USER -i lo -p tcp --dport 20128 -j ACCEPT
+# Impedir acesso externo direto à porta 8080
+iptables -I DOCKER-USER -p tcp --dport 8080 -j DROP
+iptables -I DOCKER-USER -i lo -p tcp --dport 8080 -j ACCEPT
 
 # Persistir as regras
 apt install -y iptables-persistent
@@ -396,4 +396,4 @@ Ver documentação completa em [omnirouteCloud/README.md](../omnirouteCloud/READ
 | 22    | SSH         | Público (com fail2ban)        |
 | 80    | nginx HTTP  | Redirect → HTTPS              |
 | 443   | nginx HTTPS | Via Cloudflare Proxy          |
-| 20128 | OmniRoute   | Somente localhost (via nginx) |
+| 8080 | OmniRoute   | Somente localhost (via nginx) |

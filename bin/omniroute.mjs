@@ -4,7 +4,7 @@
  * OmniRoute CLI — Smart AI Router with Auto Fallback
  *
  * Usage:
- *   omniroute              Start the server (default port 20128)
+  *   omniroute              Start the server (default port 8080)
  *   omniroute --port 3000  Start on custom port
  *   omniroute --no-open    Start without opening browser
  *   omniroute --help       Show help
@@ -30,7 +30,7 @@ if (args.includes("--help") || args.includes("-h")) {
 
   \x1b[1mUsage:\x1b[0m
     omniroute                 Start the server
-    omniroute --port <port>   Use custom port (default: 20128)
+    omniroute --port <port>   Use custom port (default: 8080)
     omniroute --no-open       Don't open browser automatically
     omniroute --help          Show this help
     omniroute --version       Show version
@@ -41,7 +41,7 @@ if (args.includes("--help") || args.includes("-h")) {
 
   \x1b[1mConnect your tools:\x1b[0m
     Set your CLI tool (Cursor, Cline, Codex, etc.) to use:
-    \x1b[33mhttp://localhost:20128/v1\x1b[0m
+    \x1b[33mhttp://localhost:8080/v1\x1b[0m
   `);
   process.exit(0);
 }
@@ -59,7 +59,7 @@ if (args.includes("--version") || args.includes("-v")) {
 }
 
 // Parse --port
-let port = 20128;
+let port = 8080;
 const portIdx = args.indexOf("--port");
 if (portIdx !== -1 && args[portIdx + 1]) {
   port = parseInt(args[portIdx + 1], 10);

@@ -128,19 +128,28 @@ export function processTranslateLine(options: ProcessTranslateLineOptions) {
   const extracted = extractUsage(parsed);
   if (extracted) state.usage = extracted;
 
-  const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
-  logOpenAIIntermediateChunks(translated, reqLogger);
+  try {
+    const translated = translateResponse(targetFormat, sourceFormat, parsed, state);
+    logOpenAIIntermediateChunks(translated, reqLogger);
 
-  if (translated?.length > 0) {
-    enqueueTranslatedItems({
-      translated,
-      sourceFormat,
-      state,
-      body,
-      totalContentLengthRef,
-      reqLogger,
-      enqueueOutput,
-    });
+    if (translated?.length > 0) {
+      enqueueTranslatedItems({
+        translated,
+        sourceFormat,
+        state,
+        body,
+        totalContentLengthRef,
+        reqLogger,
+        enqueueOutput,
+      });
+    }
+  } catch (error) {
+    // Log translation errors but continue stream to maintain resilience
+    console.error(
+      `[STREAM] Translation error (${targetFormat} → ${sourceFormat}):`,
+      error.message || error
+    );
+    // Skip this chunk but allow stream to continue
   }
 }
 

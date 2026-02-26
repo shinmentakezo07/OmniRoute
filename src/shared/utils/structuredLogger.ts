@@ -11,9 +11,13 @@
  * @module shared/utils/structuredLogger
  */
 
-import { getCorrelationId } from "../middleware/correlationId";
 import { appendFileSync, existsSync, mkdirSync } from "fs";
 import { dirname, resolve } from "path";
+
+// Conditionally import correlation ID only on server
+const getCorrelationId = typeof window === 'undefined' 
+  ? require("../middleware/correlationId").getCorrelationId 
+  : () => undefined;
 
 const LOG_LEVELS: Record<string, number> = {
   debug: 10,

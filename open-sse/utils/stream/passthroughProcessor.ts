@@ -82,7 +82,12 @@ export function processPassthroughLine(options: ProcessPassthroughLineOptions) {
         output = `data: ${JSON.stringify(parsed)}\n`;
         injectedUsage = true;
       }
-    } catch {}
+    } catch (error) {
+      // Log parse errors but continue processing to maintain stream resilience
+      if (process.env.DEBUG_STREAM === "true") {
+        console.warn(`[STREAM] Failed to parse SSE line:`, error.message);
+      }
+    }
   }
 
   if (!injectedUsage) {

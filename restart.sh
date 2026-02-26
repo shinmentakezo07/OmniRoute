@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PORT=20128
+PORT=8080
 MAX_ATTEMPTS=3
 echo "🔄 Reiniciando aplicação na porta $PORT..."
 

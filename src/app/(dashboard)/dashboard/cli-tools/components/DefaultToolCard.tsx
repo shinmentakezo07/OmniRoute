@@ -76,7 +76,7 @@ export default function DefaultToolCard({
           ? "sk_omniroute"
           : "your-api-key";
 
-    const normalizedBaseUrl = baseUrl || "http://localhost:20128";
+    const normalizedBaseUrl = baseUrl || "http://localhost:8080";
     const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
       ? normalizedBaseUrl
       : `${normalizedBaseUrl}/v1`;
@@ -112,7 +112,7 @@ export default function DefaultToolCard({
             ? "sk_omniroute"
             : "";
 
-      const normalizedBaseUrl = baseUrl || "http://localhost:20128";
+      const normalizedBaseUrl = baseUrl || "http://localhost:8080";
       const baseUrlWithV1 = normalizedBaseUrl.endsWith("/v1")
         ? normalizedBaseUrl
         : `${normalizedBaseUrl}/v1`;

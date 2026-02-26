@@ -19,12 +19,21 @@ const nextConfig = {
 
   // NEXT_PUBLIC_CLOUD_URL is set in .env — do NOT hardcode here (it overrides .env)
   webpack: (config, { isServer }) => {
+    // Handle node: protocol imports
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'node:async_hooks': 'async_hooks',
+      'node:crypto': 'crypto',
+    };
+
     // Ignore fs/path modules in browser bundle
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
         path: false,
+        async_hooks: false,
+        crypto: false,
       };
     }
     return config;

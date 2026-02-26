@@ -17,13 +17,13 @@ LABEL org.opencontainers.image.title="omniroute" \
   org.opencontainers.image.licenses="MIT"
 
 ENV NODE_ENV=production
-ENV PORT=20128
+ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
 
-# Data directory inside Docker — must match the volume mount in docker-compose.yml
+EXPOSE 8080
 ENV DATA_DIR=/app/data
 RUN mkdir -p /app/data
-
+  CMD node -e "fetch('http://127.0.0.1:8080/api/settings').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))"
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/.next/standalone ./

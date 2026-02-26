@@ -91,26 +91,26 @@ export default function UsageAnalytics() {
   return (
     <div className="flex flex-col gap-5">
       {/* Header + Time Range */}
-      <div className="rounded-xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] p-4 md:p-5">
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-primary/10 via-purple-500/5 to-emerald-500/10 p-5 md:p-6 shadow-lg">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[22px]">analytics</span>
+            <h2 className="text-2xl font-bold flex items-center gap-2.5 text-text-main">
+              <span className="material-symbols-outlined text-primary text-[28px]">analytics</span>
               Usage Analytics
             </h2>
-            <p className="text-xs text-text-muted mt-1">
+            <p className="text-sm text-text-muted mt-2 font-medium">
               Unified view of token flow, trends, provider spend, and model distribution.
             </p>
           </div>
-          <div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.03] rounded-lg p-1 border border-black/5 dark:border-white/5 w-full md:w-auto overflow-x-auto">
+          <div className="flex items-center gap-1 bg-black/20 dark:bg-black/30 rounded-xl p-1.5 border border-white/10 w-full md:w-auto overflow-x-auto shadow-inner">
             {ranges.map((r) => (
               <button
                 key={r.value}
                 onClick={() => setRange(r.value)}
-                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap ${
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                   range === r.value
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5"
+                    ? "bg-primary text-white shadow-lg scale-105"
+                    : "text-text-muted hover:text-text-main hover:bg-white/10"
                 }`}
               >
                 {r.label}
@@ -120,47 +120,52 @@ export default function UsageAnalytics() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Card className="p-3.5">
-          <p className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="p-4 border border-white/5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-primary/5 to-transparent">
+          <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px] text-primary">insights</span>
             Focus
           </p>
-          <p className="text-sm font-medium text-text-main mt-1">Charts and trend exploration</p>
-          <p className="text-xs text-text-muted mt-1">Inspect usage behavior and demand peaks.</p>
+          <p className="text-base font-bold text-text-main mt-2">Charts and trend exploration</p>
+          <p className="text-xs text-text-muted mt-1.5 font-medium">Inspect usage behavior and demand peaks.</p>
         </Card>
-        <Card className="p-3.5">
-          <p className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
+        <Card className="p-4 border border-white/5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-emerald-500/5 to-transparent">
+          <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px] text-emerald-500">science</span>
             Evaluation
           </p>
-          <p className="text-sm font-medium text-text-main mt-1">Quality and performance signals</p>
-          <p className="text-xs text-text-muted mt-1">
+          <p className="text-base font-bold text-text-main mt-2">Quality and performance signals</p>
+          <p className="text-xs text-text-muted mt-1.5 font-medium">
             Use Evals tab to validate output quality regularly.
           </p>
         </Card>
-        <Card className="p-3.5">
-          <p className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">Cost</p>
-          <p className="text-sm font-medium text-text-main mt-1">Provider and model spending</p>
-          <p className="text-xs text-text-muted mt-1">
+        <Card className="p-4 border border-white/5 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-gradient-to-br from-amber-500/5 to-transparent">
+          <p className="text-[10px] uppercase tracking-widest font-bold text-text-muted flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[16px] text-amber-500">payments</span>
+            Cost
+          </p>
+          <p className="text-base font-bold text-text-main mt-2">Provider and model spending</p>
+          <p className="text-xs text-text-muted mt-1.5 font-medium">
             Quickly identify high-cost models and providers.
           </p>
         </Card>
       </div>
 
-      <div className="rounded-xl border border-black/5 dark:border-white/10 bg-gradient-to-r from-primary/5 via-transparent to-emerald-500/10 p-3.5 flex flex-wrap items-center gap-3 text-xs text-text-muted">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-primary text-[22px]">analytics</span>
-          Insights snapshot
+      <div className="rounded-xl border border-white/10 bg-gradient-to-r from-primary/10 via-purple-500/5 to-emerald-500/10 p-4 flex flex-wrap items-center gap-3 text-xs text-text-muted shadow-md">
+        <span className="inline-flex items-center gap-2 font-bold">
+          <span className="material-symbols-outlined text-primary text-[24px]">analytics</span>
+          Insights Snapshot
         </span>
         <span>•</span>
-        <span>{fmtFull(s.totalRequests)} requests tracked</span>
+        <span className="font-semibold">{fmtFull(s.totalRequests)} requests tracked</span>
         <span>•</span>
-        <span>{fmt(s.totalTokens)} total tokens</span>
+        <span className="font-semibold">{fmt(s.totalTokens)} total tokens</span>
         <span>•</span>
-        <span>{fmtCost(s.totalCost)} estimated cost</span>
+        <span className="font-semibold">{fmtCost(s.totalCost)} estimated cost</span>
       </div>
 
       {/* Summary Cards — Row 1: Core metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
         <StatCard
           icon="generating_tokens"
           label="Total Tokens"
@@ -191,7 +196,7 @@ export default function UsageAnalytics() {
       </div>
 
       {/* Summary Cards — Row 2: Derived insights */}
-      <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
         <StatCard
           icon="speed"
           label="Avg Tokens/Req"
@@ -218,17 +223,17 @@ export default function UsageAnalytics() {
 
       {/* Activity Heatmap + Weekly Widgets */}
       <div
-        style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, alignItems: "stretch" }}
+        style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20, alignItems: "stretch" }}
       >
         <ActivityHeatmap activityMap={analytics?.activityMap} />
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <MostActiveDay7d activityMap={analytics?.activityMap} />
           <WeeklySquares7d activityMap={analytics?.activityMap} />
         </div>
       </div>
 
       {/* Token & Cost Trend + Provider Cost Donut */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <DailyTrendChart dailyTrend={analytics?.dailyTrend} />
         <ProviderCostDonut byProvider={analytics?.byProvider} />
       </div>
@@ -240,7 +245,7 @@ export default function UsageAnalytics() {
       />
 
       {/* Account Donut + API Key Donut */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <AccountDonut byAccount={analytics?.byAccount} />
         <ApiKeyDonut byApiKey={analytics?.byApiKey} />
       </div>

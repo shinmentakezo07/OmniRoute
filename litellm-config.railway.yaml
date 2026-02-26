@@ -1,0 +1,54 @@
+# LiteLLM Configuration for Railway Deployment
+# This config uses Railway environment variables
+
+model_list:
+  # Bedrock models (example)
+  - model_name: bedrock-claude-3-5-sonnet
+    litellm_params:
+      model: bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0
+      aws_access_key_id: os.environ/AWS_ACCESS_KEY_ID
+      aws_secret_access_key: os.environ/AWS_SECRET_ACCESS_KEY
+      aws_region_name: us-east-1
+
+  # Vertex AI models (example)
+  - model_name: vertex-gemini-2.0-flash
+    litellm_params:
+      model: vertex_ai/gemini-2.0-flash-exp
+      vertex_project: os.environ/VERTEX_PROJECT_ID
+      vertex_location: us-central1
+
+  # Together AI models (example)
+  - model_name: together-llama-3.3-70b
+    litellm_params:
+      model: together_ai/meta-llama/Meta-Llama-3.3-70B-Instruct-Turbo
+      api_key: os.environ/TOGETHER_API_KEY
+
+  # Fallback configuration
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+
+litellm_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  
+  # Rate limiting (Railway Redis)
+  redis_host: os.environ/REDIS_HOST
+  redis_port: os.environ/REDIS_PORT
+  redis_password: os.environ/REDIS_PASSWORD
+  
+  # Retry & fallback
+  num_retries: 3
+  request_timeout: 600
+  fallbacks:
+    - [bedrock-claude-3-5-sonnet, gpt-4o]
+  
+  # Disable UI features (we use omniroute UI)
+  disable_spend_logs: true
+  disable_error_logs: true
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  allow_requests_on_db_unavailable: true

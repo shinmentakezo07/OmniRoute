@@ -28,7 +28,7 @@ x-common: &common
         "CMD",
         "node",
         "-e",
-        "fetch('http://127.0.0.1:20128/api/settings').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))",
+        "fetch('http://127.0.0.1:8080/api/settings').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))",
       ]
     interval: 30s
     timeout: 5s
@@ -45,7 +45,7 @@ services:
       target: runner-base
     image: omniroute:base
     ports:
-      - "${PORT:-20128}:20128"
+      - "${PORT:-8080}:8080"
     profiles:
       - base
 
@@ -58,7 +58,7 @@ services:
       target: runner-cli
     image: omniroute:cli
     ports:
-      - "${PORT:-20128}:20128"
+      - "${PORT:-8080}:8080"
     profiles:
       - cli
 
@@ -71,7 +71,7 @@ services:
       target: runner-base
     image: omniroute:base
     ports:
-      - "${PORT:-20128}:20128"
+      - "${PORT:-8080}:8080"
     environment:
       - CLI_MODE=host
       - CLI_EXTRA_PATHS=/host-local/bin:/host-node/bin
