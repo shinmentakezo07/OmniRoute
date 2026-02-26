@@ -10,6 +10,8 @@ import { resolveComboConfig, getDefaultComboConfig } from "./comboConfig.ts";
 import * as semaphore from "./rateLimitSemaphore.ts";
 import { getCircuitBreaker } from "../../src/shared/utils/circuitBreaker";
 import { parseModel } from "./model.ts";
+import { trackRequestAttempt } from "@/lib/localDb";
+import { v4 as uuidv4 } from "uuid";
 
 // Status codes that should mark semaphore + record circuit breaker failures
 const TRANSIENT_FOR_BREAKER = [429, 502, 503, 504];
@@ -230,9 +232,11 @@ export async function handleComboChat({
   log,
   settings,
   allCombos,
+  apiKeyId,
 }) {
   const strategy = combo.strategy || "priority";
   const models = combo.models || [];
+  const requestId = uuidv4();
 
   // Route to round-robin handler if strategy matches
   if (strategy === "round-robin") {
@@ -244,6 +248,7 @@ export async function handleComboChat({
       log,
       settings,
       allCombos,
+      apiKeyId,
     });
   }
 
@@ -302,7 +307,6 @@ export async function handleComboChat({
   let earliestRetryAfter = null;
   let lastStatus = null;
   const startTime = Date.now();
-  let resolvedByModel = null;
   let fallbackCount = 0;
 
   for (let i = 0; i < orderedModels.length; i++) {
@@ -347,12 +351,26 @@ export async function handleComboChat({
         `Trying model ${i + 1}/${orderedModels.length}: ${modelStr}${retry > 0 ? ` (retry ${retry})` : ""}`
       );
 
+      const attemptStart = Date.now();
       const result = await handleSingleModel(body, modelStr);
+      const attemptLatency = Date.now() - attemptStart;
 
       // Success — return response
       if (result.ok) {
-        resolvedByModel = modelStr;
         const latencyMs = Date.now() - startTime;
+        trackRequestAttempt({
+          requestId,
+          attemptNumber: i + 1,
+          attemptType: retry > 0 ? "retry" : i === 0 ? "primary" : "fallback",
+          model: modelStr,
+          provider,
+          status: result.status,
+          latencyMs: attemptLatency,
+          skipped: false,
+          comboName: combo.name,
+          apiKeyId,
+          circuitBreakerState: breaker.getStatus?.() || "CLOSED",
+        });
         log.info(
           "COMBO",
           `Model ${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
@@ -426,12 +444,38 @@ export async function handleComboChat({
       // Check if this is a transient error worth retrying on same model
       const isTransient = [408, 429, 500, 502, 503, 504].includes(result.status);
       if (retry < maxRetries && isTransient) {
+        trackRequestAttempt({
+          requestId,
+          attemptNumber: i + 1,
+          attemptType: "retry",
+          model: modelStr,
+          provider,
+          status: result.status,
+          error: errorText,
+          latencyMs: attemptLatency,
+          skipped: false,
+          comboName: combo.name,
+          apiKeyId,
+        });
         continue; // Retry same model
       }
 
       // Done retrying this model
       lastError = errorText || String(result.status);
       if (!lastStatus) lastStatus = result.status;
+      trackRequestAttempt({
+        requestId,
+        attemptNumber: i + 1,
+        attemptType: i === 0 ? "primary" : "fallback",
+        model: modelStr,
+        provider,
+        status: result.status,
+        error: errorText,
+        latencyMs: attemptLatency,
+        skipped: false,
+        comboName: combo.name,
+        apiKeyId,
+      });
       if (i > 0) fallbackCount++;
       log.warn("COMBO", `Model ${modelStr} failed, trying next`, { status: result.status });
       break; // Move to next model
@@ -491,8 +535,11 @@ async function handleRoundRobinCombo({
   log,
   settings,
   allCombos,
+  apiKeyId,
 }) {
   const models = combo.models || [];
+  const requestId = uuidv4();
+
   const config = settings
     ? resolveComboConfig(combo, settings)
     : { ...getDefaultComboConfig(), ...(combo.config || {}) };
@@ -540,6 +587,18 @@ async function handleRoundRobinCombo({
     // Skip model if circuit breaker is OPEN
     if (!breaker.canExecute()) {
       log.info("COMBO-RR", `Skipping ${modelStr}: circuit breaker OPEN for ${provider}`);
+      trackRequestAttempt({
+        requestId,
+        attemptNumber: offset + 1,
+        attemptType: offset === 0 ? "primary" : "fallback",
+        model: modelStr,
+        provider,
+        skipped: true,
+        skipReason: "circuit_breaker_open",
+        circuitBreakerState: "OPEN",
+        comboName: combo.name,
+        apiKeyId,
+      });
       if (offset > 0) fallbackCount++;
       continue;
     }
@@ -549,6 +608,17 @@ async function handleRoundRobinCombo({
       const available = await isModelAvailable(modelStr);
       if (!available) {
         log.info("COMBO-RR", `Skipping ${modelStr} (all accounts in cooldown)`);
+        trackRequestAttempt({
+          requestId,
+          attemptNumber: offset + 1,
+          attemptType: offset === 0 ? "primary" : "fallback",
+          model: modelStr,
+          provider,
+          skipped: true,
+          skipReason: "accounts_in_cooldown",
+          comboName: combo.name,
+          apiKeyId,
+        });
         if (offset > 0) fallbackCount++;
         continue;
       }
@@ -564,6 +634,17 @@ async function handleRoundRobinCombo({
     } catch (err) {
       if (err.code === "SEMAPHORE_TIMEOUT") {
         log.warn("COMBO-RR", `Semaphore timeout for ${modelStr}, trying next model`);
+        trackRequestAttempt({
+          requestId,
+          attemptNumber: offset + 1,
+          attemptType: offset === 0 ? "primary" : "fallback",
+          model: modelStr,
+          provider,
+          skipped: true,
+          skipReason: "semaphore_timeout",
+          comboName: combo.name,
+          apiKeyId,
+        });
         if (offset > 0) fallbackCount++;
         continue;
       }
@@ -586,11 +667,28 @@ async function handleRoundRobinCombo({
           `[RR #${counter}] → ${modelStr}${offset > 0 ? ` (fallback +${offset})` : ""}${retry > 0 ? ` (retry ${retry})` : ""}`
         );
 
+        const attemptStart = Date.now();
         const result = await handleSingleModel(body, modelStr);
+        const attemptLatency = Date.now() - attemptStart;
 
         // Success
         if (result.ok) {
+          resolvedByModel = modelStr;
           const latencyMs = Date.now() - startTime;
+          trackRequestAttempt({
+            requestId,
+            attemptNumber: offset + 1,
+            attemptType: retry > 0 ? "retry" : offset === 0 ? "primary" : "fallback",
+            model: modelStr,
+            provider,
+            status: result.status,
+            latencyMs: attemptLatency,
+            skipped: false,
+            selectionReason: "round_robin",
+            comboName: combo.name,
+            apiKeyId,
+            circuitBreakerState: breaker.getStatus?.() || "CLOSED",
+          });
           log.info(
             "COMBO-RR",
             `${modelStr} succeeded (${latencyMs}ms, ${fallbackCount} fallbacks)`
@@ -667,12 +765,38 @@ async function handleRoundRobinCombo({
         // Transient error → retry same model
         const isTransient = [408, 429, 500, 502, 503, 504].includes(result.status);
         if (retry < maxRetries && isTransient) {
+          trackRequestAttempt({
+            requestId,
+            attemptNumber: offset + 1,
+            attemptType: "retry",
+            model: modelStr,
+            provider,
+            status: result.status,
+            error: errorText,
+            latencyMs: attemptLatency,
+            skipped: false,
+            comboName: combo.name,
+            apiKeyId,
+          });
           continue;
         }
 
         // Done with this model
         lastError = errorText || String(result.status);
         if (!lastStatus) lastStatus = result.status;
+        trackRequestAttempt({
+          requestId,
+          attemptNumber: offset + 1,
+          attemptType: offset === 0 ? "primary" : "fallback",
+          model: modelStr,
+          provider,
+          status: result.status,
+          error: errorText,
+          latencyMs: attemptLatency,
+          skipped: false,
+          comboName: combo.name,
+          apiKeyId,
+        });
         if (offset > 0) fallbackCount++;
         log.warn("COMBO-RR", `${modelStr} failed, trying next model`, { status: result.status });
         break;

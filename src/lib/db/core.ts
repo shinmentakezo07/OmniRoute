@@ -230,6 +230,33 @@ const SCHEMA_SQL = `
   );
   CREATE INDEX IF NOT EXISTS idx_sc_sig ON semantic_cache(signature);
   CREATE INDEX IF NOT EXISTS idx_sc_model ON semantic_cache(model);
+
+  -- Request Attempts Tracking (Phase 10: Full Traffic Visibility)
+  CREATE TABLE IF NOT EXISTS request_attempts (
+    id TEXT PRIMARY KEY,
+    request_id TEXT NOT NULL,
+    timestamp TEXT NOT NULL,
+    attempt_number INTEGER DEFAULT 1,
+    attempt_type TEXT,
+    model TEXT,
+    provider TEXT,
+    connection_id TEXT,
+    account TEXT,
+    selection_reason TEXT,
+    health_score INTEGER,
+    circuit_breaker_state TEXT,
+    status INTEGER,
+    error TEXT,
+    latency_ms INTEGER DEFAULT 0,
+    skipped INTEGER DEFAULT 0,
+    skip_reason TEXT,
+    combo_name TEXT,
+    api_key_id TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_ra_request_id ON request_attempts(request_id);
+  CREATE INDEX IF NOT EXISTS idx_ra_timestamp ON request_attempts(timestamp);
+  CREATE INDEX IF NOT EXISTS idx_ra_model ON request_attempts(model);
+  CREATE INDEX IF NOT EXISTS idx_ra_status ON request_attempts(status);
 `;
 
 // ──────────────── Column Mapping ────────────────

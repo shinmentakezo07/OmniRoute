@@ -20,6 +20,7 @@ import {
   trackPendingRequest,
   appendRequestLog,
   saveCallLog,
+  trackRequestAttempt,
 } from "@/lib/usageDb";
 import { getExecutor } from "../executors/index.ts";
 import { translateNonStreamingResponse } from "./responseTranslator.ts";

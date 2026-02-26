@@ -94,3 +94,12 @@ export {
   listDbBackups,
   restoreDbBackup,
 } from "./db/backup";
+
+export {
+  // Request Attempts Tracking
+  trackRequestAttempt,
+  getRequestAttempts,
+  queryRequestAttempts,
+  getAttemptStats,
+  clearOldAttempts,
+} from "./db/requestAttempts";
