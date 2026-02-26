@@ -127,7 +127,10 @@ export async function handleChat(request: any, clientRawRequest: any = null) {
   telemetry.startPhase("policy");
   const policy = await enforceApiKeyPolicy(request, modelStr);
   if (policy.rejection) {
-    log.warn("POLICY", `API key policy rejected: ${modelStr} (key=${policy.apiKeyInfo?.id || "unknown"})`);
+    log.warn(
+      "POLICY",
+      `API key policy rejected: ${modelStr} (key=${policy.apiKeyInfo?.id || "unknown"})`
+    );
     return policy.rejection;
   }
   const apiKeyInfo = policy.apiKeyInfo;
@@ -289,8 +292,6 @@ async function handleSingleModelChat(
       model,
       sourceFormat,
       targetFormat,
-      credentials,
-      comboName,
       clientRawRequest,
       tlsFingerprintUsed,
     });
@@ -298,7 +299,9 @@ async function handleSingleModelChat(
     if (result.success) {
       recordCostIfNeeded(apiKeyInfo, result);
       if (telemetry) telemetry.startPhase("finalize");
+      await clearAccountError(credentials.connectionId, credentials);
       if (telemetry) telemetry.endPhase();
+      await clearAccountError(credentials.connectionId, credentials);
       return result.response;
     }
 
@@ -316,18 +319,19 @@ async function handleSingleModelChat(
       credentials.connectionId,
       result.status,
       result.error,
-      provider
+      provider,
+      model,
+      credentials.providerApiKeyId || null
     );
 
-    if (shouldFallback) {
-      log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
-      excludeConnectionId = credentials.connectionId;
-      lastError = result.error;
-      lastStatus = result.status;
-      continue;
+    if (!shouldFallback) {
+      return result.response;
     }
 
-    return result.response;
+    log.warn("AUTH", `Account ${accountId}... unavailable (${result.status}), trying fallback`);
+    excludeConnectionId = credentials.connectionId;
+    lastError = result.error;
+    lastStatus = result.status;
   }
 }
 

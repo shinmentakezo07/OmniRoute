@@ -3,6 +3,9 @@ import {
   validateApiKey,
   updateProviderConnection,
   getSettings,
+  selectApiKeyForProvider,
+  markApiKeyUsed,
+  markApiKeyRateLimited,
 } from "@/lib/localDb";
 import {
   isAccountUnavailable,
@@ -26,6 +29,7 @@ const markMutexes = new Map<string, Promise<void>>();
 /**
  * Get provider credentials from localDb
  * Filters out unavailable accounts and returns the selected account based on strategy
+ * Now supports multiple API keys per provider with round-robin load balancing
  * @param {string} provider - Provider name
  * @param {string|null} excludeConnectionId - Connection ID to exclude (for retry with next account)
  */
@@ -42,6 +46,27 @@ export async function getProviderCredentials(
 
   try {
     await currentMutex;
+
+    // Try to get API key from multi-key pool first
+    const selectedKey = await selectApiKeyForProvider(provider);
+    if (selectedKey) {
+      log.debug(
+        "AUTH",
+        `${provider} | using multi-key pool | key: ${selectedKey.name} (priority: ${selectedKey.priority})`
+      );
+
+      // Mark key as used for round-robin tracking
+      await markApiKeyUsed(selectedKey.id);
+
+      return {
+        apiKey: selectedKey.apiKey,
+        connectionId: selectedKey.connectionId || `key-${selectedKey.id}`,
+        providerApiKeyId: selectedKey.id,
+        testStatus: "active",
+        lastError: selectedKey.lastError,
+        rateLimitedUntil: selectedKey.rateLimitedUntil,
+      };
+    }
 
     const connections = await getProviderConnections({ provider, isActive: true });
     log.debug(
@@ -243,7 +268,8 @@ export async function markAccountUnavailable(
   status: number,
   errorText: string,
   provider: string | null = null,
-  model: string | null = null
+  model: string | null = null,
+  providerApiKeyId: string | null = null
 ) {
   const currentMutex = markMutexes.get(connectionId) || Promise.resolve();
   let resolveMutex: (() => void) | undefined;
@@ -256,6 +282,33 @@ export async function markAccountUnavailable(
 
   try {
     await currentMutex;
+
+    // If this is a multi-key API key, mark it as rate limited
+    if (providerApiKeyId) {
+      const { shouldFallback, cooldownMs, reason } = checkFallbackError(
+        status,
+        errorText,
+        0, // backoffLevel not used for API keys
+        model,
+        provider
+      );
+
+      if (shouldFallback && cooldownMs > 0) {
+        const rateLimitedUntil = getUnavailableUntil(cooldownMs);
+        const errorMsg = typeof errorText === "string" ? errorText.slice(0, 100) : "Provider error";
+
+        await markApiKeyRateLimited(providerApiKeyId, rateLimitedUntil, errorMsg);
+
+        log.warn(
+          "AUTH",
+          `API key ${providerApiKeyId.slice(0, 8)} marked rate limited until ${rateLimitedUntil} (${reason})`
+        );
+
+        return { shouldFallback: true, cooldownMs };
+      }
+
+      return { shouldFallback: false, cooldownMs: 0 };
+    }
 
     // Read current connection to get backoffLevel
     const connections = await getProviderConnections({ provider });

@@ -103,3 +103,21 @@ export {
   getAttemptStats,
   clearOldAttempts,
 } from "./db/requestAttempts";
+
+export {
+  // Provider API Keys (Multi-key support)
+  getProviderApiKeys,
+  getProviderApiKeyById,
+  createProviderApiKey,
+  updateProviderApiKey,
+  deleteProviderApiKey,
+  markApiKeyUsed,
+  markApiKeyRateLimited,
+
+  // Round-Robin Settings
+  getRoundRobinSettings,
+  setRoundRobinSettings,
+  getGlobalRoundRobinEnabled,
+  setGlobalRoundRobinEnabled,
+  selectApiKeyForProvider,
+} from "./db/providerApiKeys";
