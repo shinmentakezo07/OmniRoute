@@ -91,26 +91,72 @@ export default function UsageAnalytics() {
   return (
     <div className="flex flex-col gap-5">
       {/* Header + Time Range */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-[22px]">analytics</span>
-          Usage Analytics
-        </h2>
-        <div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.03] rounded-lg p-1 border border-black/5 dark:border-white/5">
-          {ranges.map((r) => (
-            <button
-              key={r.value}
-              onClick={() => setRange(r.value)}
-              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-                range === r.value
-                  ? "bg-primary text-white shadow-sm"
-                  : "text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5"
-              }`}
-            >
-              {r.label}
-            </button>
-          ))}
+      <div className="rounded-xl border border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] p-4 md:p-5">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-[22px]">analytics</span>
+              Usage Analytics
+            </h2>
+            <p className="text-xs text-text-muted mt-1">
+              Unified view of token flow, trends, provider spend, and model distribution.
+            </p>
+          </div>
+          <div className="flex items-center gap-1 bg-black/[0.03] dark:bg-white/[0.03] rounded-lg p-1 border border-black/5 dark:border-white/5 w-full md:w-auto overflow-x-auto">
+            {ranges.map((r) => (
+              <button
+                key={r.value}
+                onClick={() => setRange(r.value)}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all whitespace-nowrap ${
+                  range === r.value
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-text-muted hover:text-text-main hover:bg-black/5 dark:hover:bg-white/5"
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <Card className="p-3.5">
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
+            Focus
+          </p>
+          <p className="text-sm font-medium text-text-main mt-1">Charts and trend exploration</p>
+          <p className="text-xs text-text-muted mt-1">Inspect usage behavior and demand peaks.</p>
+        </Card>
+        <Card className="p-3.5">
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">
+            Evaluation
+          </p>
+          <p className="text-sm font-medium text-text-main mt-1">Quality and performance signals</p>
+          <p className="text-xs text-text-muted mt-1">
+            Use Evals tab to validate output quality regularly.
+          </p>
+        </Card>
+        <Card className="p-3.5">
+          <p className="text-[11px] uppercase tracking-wider font-semibold text-text-muted">Cost</p>
+          <p className="text-sm font-medium text-text-main mt-1">Provider and model spending</p>
+          <p className="text-xs text-text-muted mt-1">
+            Quickly identify high-cost models and providers.
+          </p>
+        </Card>
+      </div>
+
+      <div className="rounded-xl border border-black/5 dark:border-white/10 bg-gradient-to-r from-primary/5 via-transparent to-emerald-500/10 p-3.5 flex flex-wrap items-center gap-3 text-xs text-text-muted">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-primary text-[22px]">analytics</span>
+          Insights snapshot
+        </span>
+        <span>•</span>
+        <span>{fmtFull(s.totalRequests)} requests tracked</span>
+        <span>•</span>
+        <span>{fmt(s.totalTokens)} total tokens</span>
+        <span>•</span>
+        <span>{fmtCost(s.totalCost)} estimated cost</span>
       </div>
 
       {/* Summary Cards — Row 1: Core metrics */}
